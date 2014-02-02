@@ -2,9 +2,9 @@
 
 ## Purpose
 
-Kitchen is an entity which is responsible for operating recipe.
-Each recipe is supposed to accept some number of products and produce some other number of
-products.
+Kitchen is an entity which is responsible for making products. There is some product,
+which plays the role of the "recipe" at them moment of creation. It is supposed
+to accept some number of incoming products and produce some other number of products.
 
 ## Technology
 

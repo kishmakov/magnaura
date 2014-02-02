@@ -1,0 +1,12 @@
+====================== 1 ======================
+Status: [+]
+Description:
+  implement 4 files (kitchen.js, sequence.js, sorter1.js, sorter2.js)
+  such that 'node kitchen.js' would ask for sorter and, provided it,
+  would sort sequence with sorter
+
+====================== 2 ======================
+Status: [-]
+Description:
+  upgrade previous task so that kitchen would not just insert sorter
+  into scheme, but also validate it
