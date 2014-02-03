@@ -10,18 +10,9 @@ function demonstrate(sorterName) {
     var sorter = Function.apply(null, ['a', sorterBody]);
 
     var a = sequence();
-
-    fs.writeFile('before.txt', a.toString(), function (err) {
-      if (err) throw err;
-      console.log('"a" before sorting saved');
-    });
-
+    fs.writeFileSync('before.txt', a.toString());
     sorter(a);
-
-    fs.writeFile('after.txt', a.toString(), function (err) {
-      if (err) throw err;
-      console.log('"a" after sorting saved');
-    });
+    fs.writeFileSync('after.txt', a.toString());
 }
 
 //////////////////// Body ////////////////////
@@ -39,7 +30,7 @@ process.stdin.on('data', function (text) {
     try {
         demonstrate(sorterName);
     } catch (e) {
-        console.log('Couldn\'t open sorter "' + sorterName + '"');
+        console.log('Couldn\'t open sorter "' + sorterName + '", reason: ' + e.toString());
     }
 
     process.exit();
