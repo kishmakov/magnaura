@@ -10,3 +10,11 @@ Status: [-]
 Description:
   upgrade previous task so that kitchen would not just insert sorter
   into scheme, but also validate it
+
+====================== 3 ======================
+Status: [-]
+Description:
+  make such a file kitchen.js that it would run and provide "upload" functionality,
+  make pre_sequence.js, which once uploaded by kitchen.js would provide function "make_sorter".
+  this function should accept sorter.js file and produce sequence.js.
+  if kitchen.js would upload resulting sequence.js, it provide function "show_sequence"
