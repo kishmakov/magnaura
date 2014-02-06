@@ -6,7 +6,7 @@ Description:
   would sort sequence with sorter
 
 ====================== 2 ======================
-Status: [-]
+Status: [+]
 Description:
   upgrade previous task so that kitchen would not just insert sorter
   into scheme, but also validate it
