@@ -14,7 +14,7 @@ Description:
 ====================== 3 ======================
 Status: [-]
 Description:
-  make such a file kitchen.js that it would run and provide "upload" functionality,
-  make pre_sequence.js, which once uploaded by kitchen.js would provide function "make_sorter".
-  this function should accept sorter.js file and produce sequence.js.
-  if kitchen.js would upload resulting sequence.js, it provide function "show_sequence"
+  1. Make kcompiler.js and kitchen.js (consisting of kfusion, kloader and ksaver)
+  2. Make sorter.ks.js and sequence_provider.ks.js
+  3. Compile them into sorter.ks.json and sequence_provider.ks.json
+  4. Produce sorted_sequence_provider.ks.json
