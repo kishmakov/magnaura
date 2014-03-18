@@ -323,10 +323,20 @@ function parseScript() {
 }
 
 exports.parse = function (source_string) {
-    source = source_string;
-    index = 0;
+//    source = source_string;
+//    index = 0;
 
-    return parseScript();
+    function ParsedObject(len) {
+        this.len = len;
+    }
+
+    ParsedObject.prototype.sayHi = function (name) {
+        return 'Hey, ' + name + '! I\'am of length ' + this.len + '...';
+    };
+
+    return new ParsedObject(source_string.length);
+
+//    return parseScript();
 }
 
 
