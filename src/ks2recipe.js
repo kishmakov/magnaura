@@ -124,6 +124,7 @@ exports.SHA256 = function (s) {
 /////////
 
 var source, index;
+var nextToken;
 
 var Token = {
     AccessSpecifier: 'AccessSpecifier',
@@ -138,61 +139,40 @@ var Token = {
     StringLiteral: 'StringLiteral'
 };
 
-function isEOF() {
-    return index >= source.length;
-}
-
-function lex() {
-    var ch, token;
-
-    skipComment();
-
-    if (index >= source.length) {
-        return {
-            type: Token.EOF
-        };
-    }
-
-    token = scanPunctuator();
-    if (typeof token !== 'undefined') {
-        return token;
-    }
-
-    ch = peekChar();
-
-    if (ch === '\'' || ch === '"') {
-        return scanStringLiteral();
-    }
-
-    if (ch === '.' || isDecimalDigit(ch)) {
-        return scanNumericLiteral();
-    }
-
-    token = scanIdentifier();
-    if (typeof token !== 'undefined') {
-        return token;
-    }
-
-    throw {
-        message: 'Unknown token from character ' + nextChar()
-    };
-}
-
 function peekChar(advance) {
     var idx;
     idx = (arguments.length > 0) ? (index + advance - 1) : index;
     return ((idx < source.length) ? source.charAt(idx) : '\x00');
 }
 
-function nextChar() {
-    var ch = '\x00',
-        idx = index;
-    if (idx < source.length) {
-        ch = source.charAt(idx);
-        index += 1;
-    }
-    return ch;
+function isEOF() {
+    return index >= source.length;
 }
+
+function inCommentCharType(ch) {
+    switch (ch) {
+        case '\u0009': // tab
+        case '\u000B': // vertical tab
+        case '\u000D': // carriage return
+        case ' ':
+            return 0; // whitespace but not line break
+        case '\u000A': // line feed
+            return 1; // line break
+        case '/':
+            return 2; // slash
+        case '*':
+            return 3; // star
+        default:
+            return 4; // else
+    }
+}
+
+// 0 - before comment
+// 1 - start of lexemme
+
+var inCommentStates = [
+
+];
 
 function skipComment() {
     var ch, blockComment, lineComment;
@@ -240,6 +220,52 @@ function skipComment() {
     }
 }
 
+
+function lex() {
+    var ch, token;
+
+    skipComment();
+
+    if (index >= source.length) {
+        return {
+            type: Token.EOF
+        };
+    }
+
+    token = scanPunctuator();
+    if (typeof token !== 'undefined') {
+        return token;
+    }
+
+    ch = peekChar();
+
+    if (ch === '\'' || ch === '"') {
+        return scanStringLiteral();
+    }
+
+    if (ch === '.' || isDecimalDigit(ch)) {
+        return scanNumericLiteral();
+    }
+
+    token = scanIdentifier();
+    if (typeof token !== 'undefined') {
+        return token;
+    }
+
+    throw {
+        message: 'Unknown token from character ' + nextChar()
+    };
+}
+
+function nextChar() {
+    var ch = '\x00',
+        idx = index;
+    if (idx < source.length) {
+        ch = source.charAt(idx);
+        index += 1;
+    }
+    return ch;
+}
 
 function lookahead() {
     var token,
@@ -293,7 +319,7 @@ function parseExternalFunction() {
 }
 
 function parseScript() {
-    var recipeElement = {
+    var functionElements = {
         'public':  [],
         'private': [],
         'fusion':  []
@@ -302,29 +328,19 @@ function parseScript() {
     var functionElement;
 
     while (!isEOF()) {
-
         functionElement = parseExternalFunction();
-
         if (typeof functionElement === 'undefined')
             break;
 
-        switch (functionElement['accessSpecifier']) {
-            case 'public':
-                break;
-            case 'private':
-                break;
-            case 'fusion':
-                break;
-        }
-
+        functionElements[functionElement['accessSpecifier']].push(functionElement);
     }
 
-    return recipeElement;
+    return functionElements;
 }
 
 exports.parse = function (source_string) {
-//    source = source_string;
-//    index = 0;
+    source = source_string;
+    index = 0;
 
     function ParsedObject(len) {
         this.len = len;
