@@ -7,7 +7,6 @@
 // compiler
 
     var source, index;
-    var nextToken;
 
     var Token = {
         AccessSpecifier: 'AccessSpecifier',
@@ -26,10 +25,6 @@
         return index >= source.length;
     }
 
-    function peekChar() {
-        return (index < source.length) ? source.charAt(index) : '\x00';
-    }
-
     function advance() {
         if (index < source.length)
             index += 1;
@@ -38,6 +33,53 @@
     function retreat() {
         if (index > 0)
             index -= 1;
+    }
+    function throwUnexpected(token) {
+        if (token.type === Token.EOF) {
+            throw {
+                message: 'Unexpected <EOF>'
+            };
+        }
+
+        var s = token.value;
+
+        if (s.length > 10) {
+            s = s.substr(0, 10) + '...';
+        }
+
+        throw {
+            message: 'Unexpected token ' + s
+        };
+    }
+
+    function lookAhead(howMuch) {
+        var length = 1;
+
+        if (arguments.length > 0) {
+            length = howMuch;
+        }
+
+        var start = Math.min(index, source.length - 1);
+        var found = source.substr(start, length);
+
+        for (var i = 0; i + found.length < length; i++)
+            found += '\x00';
+
+        return found;
+    }
+
+    function expect(need) {
+        var start = Math.min(index, source.length - 1);
+
+        var found = source.substr(start, need.length);
+
+        if (found !== need) {
+            throw {
+                message: 'Expected "' + need + '" found "' + found + '"'
+            };
+        }
+
+        index += need.length;
     }
 
     // 0: ws
@@ -71,13 +113,13 @@
         (3 << 0) + (3 << 3) + (3 << 6) + (4 << 9) + (3 << 12), // 3 - plain
         (3 << 0) + (3 << 3) + (0 << 6) + (4 << 9) + (3 << 12)  // 4 - plain after *
     ];
-    // 5 - bullshit
+    // 5 - bad token
     // 6 - start of lexeme
 
     function skipComment() {
         var charType, state = 0;
 
-        while ((index < source.length) && (state < 5)) {
+        while (!isEOF() && (state < 5)) {
             charType = inCommentCharType();
             state = (CommentStates[state] >> (3 * charType)) & 7;
 
@@ -95,7 +137,7 @@
 
         skipComment();
 
-        if (index >= source.length) {
+        if (isEOF()) {
             return {
                 type: Token.EOF
             };
@@ -137,43 +179,41 @@
         return token;
     }
 
+    function parseAccessSpecifier() {
+        var ch = lookAhead(2);
 
-    function throwUnexpected(token) {
-        if (token.type === Token.EOF) {
-            throw {
-                message: 'Unexpected <EOF>'
-            };
+        switch (ch) {
+            case 'pu':
+                expect('public');
+                return 'public';
+            case 'pr':
+                expect('private');
+                return 'private';
+            case 'fu':
+                expect('fusion');
+                return 'fusion';
+            default: throw {
+                message: 'Unexpected Access Specifier'
+            }
+
         }
 
-        var s = token.value;
 
-        if (s.length > 10)
-            s = s.substr(0, 10) + '...';
-
-        throw {
-            message: 'Unexpected token ' + s
-        };
     }
 
     function parseExternalFunction() {
-        var token = lookahead();
+        var functionElement = {};
 
-        if (token.type === Token.EOF)
-            return;
+        functionElement['accessSpecifier'] = parseAccessSpecifier();
+        functionElement['identifier'] = parseIdentifier();
 
-        if (token.type !== Token.AccessSpecifier)
-            throwUnexpected(token);
+        expect('(');
+        functionElement['arguments'] = parseArguments();
+        expect(')');
 
-        var functionElement = { accessSpecifier: parseAccessSpecifier() };
+        parseBlock();
 
-        token = lex();
-        if (token.type !== 'Identifier') {
-            throwUnexpected(token);
-        }
-        id = token.value;
-
-
-        return parseStatement();
+        return functionElement;
     }
 
     function parseScript() {
@@ -208,9 +248,9 @@
             return 'Hey, ' + name + '! Hash is \'' + tools.SHA256('H' + this.len) + '\'';
         };
 
-        return new ParsedObject(source_string.length);
+//        return new ParsedObject(source_string.length);
 
-//    return parseScript();
+    return parseScript();
     }
 
 
