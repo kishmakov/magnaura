@@ -36,11 +36,6 @@
         return "(){}[],;".indexOf(ch) >= 0;
     }
 
-//    = > < ! ~ ? : .
-//    == <= >= != && || ++ --
-//        + - * / & | ^ % << >> >>>
-//            += -= *= /= &= |= ^= %= <<= >>= >>>=
-
     function isOperatorChar(ch) {
         return "=><!~?:.&|+-*/^%".indexOf(ch) >= 0;
     }
@@ -51,14 +46,28 @@
         return index >= source.length;
     }
 
-    function advance() {
-        if (index < source.length)
-            index += 1;
+    function advance(howMuch) {
+        var length = 1;
+
+        if (arguments.length > 0) {
+            length = howMuch;
+        }
+
+        if (index < source.length) {
+            index += length;
+        }
     }
 
     function retreat() {
-        if (index > 0)
-            index -= 1;
+        var length = 1;
+
+        if (arguments.length > 0) {
+            length = howMuch;
+        }
+
+        if (index < source.length) {
+            index -= length;
+        }
     }
 
     function throwUnexpected(token) {
@@ -109,6 +118,8 @@
         index += need.length;
     }
 
+// parse functions
+
     // 0: ws
     // 1: lb
     // 2: /
@@ -116,7 +127,7 @@
     // 4: ? (other)
 
     function inCommentCharType() {
-        switch (peekChar()) {
+        switch (lookAhead()) {
             case '\u0009': // tab
             case '\u000B': // vertical tab
             case ' ':
@@ -161,6 +172,37 @@
             throwUnexpected(Token.EOF);
     }
 
+    function parseOperator() {
+        var ahead = lookAhead(4)
+
+        var options = {
+            4: ['>>>='],
+            3: ['===', '!==', '>>>', '<<=', '>>='],
+            2: ['<=', '>=', '==', '!=', '++', '--', '<<', '>>',
+                '&&', '||', '+=', '-=', '*=', '%=', '&=', '|=', '^=', '/='],
+            1 : ['.', '<', '>', '+', '-', '*', '%', '&', '|', '^', '!', '~', '?', ':', '=', '/']
+        }
+
+        for (var i = 4; i > 0; i--) {
+            var prefix = ahead.substr(0, i);
+            for (var j = 0; j < options[i].length; j++)
+                if (prefix === options[i][j]) {
+                    advance(i);
+
+                    return {
+                        type: Token.Operator,
+                        value: prefix
+                    };
+
+                }
+        }
+
+        throw {
+            message: 'Unexpected operator form ' + ahead
+        };
+    }
+
+
     function parseToken() {
         var token;
 
@@ -187,20 +229,20 @@
         }
 
         if (ch === '\'' || ch === '"') {
-            return scanStringLiteral();
+            return parseStringLiteral();
         }
 
         if (ch === '.' || isDecimalDigit(ch)) {
-            return scanNumericLiteral();
+            return parseNumericLiteral();
         }
 
-        token = scanIdentifier();
+        token = parseIdentifier();
         if (typeof token !== 'undefined') {
             return token;
         }
 
         throw {
-            message: 'Unknown token from character ' + nextChar()
+            message: 'Unknown token from character ' + ch
         };
     }
 
