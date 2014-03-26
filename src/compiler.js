@@ -17,9 +17,35 @@
         Keyword: 'Keyword',
         NullLiteral: 'NullLiteral',
         NumericLiteral: 'NumericLiteral',
-        Punctuator: 'Punctuator',
+        Operator: 'Operator',
+        Separator: 'Separator',
         StringLiteral: 'StringLiteral'
     };
+
+// character detection
+
+    function isLetter(ch) {
+        return ('A' <= ch && ch <= 'Z') || ('a' <= ch && ch <= 'z');
+    }
+
+    function isDigit(ch) {
+        return '0' <= ch && ch <= '9';
+    }
+
+    function isSeparator(ch) {
+        return "(){}[],;".indexOf(ch) >= 0;
+    }
+
+//    = > < ! ~ ? : .
+//    == <= >= != && || ++ --
+//        + - * / & | ^ % << >> >>>
+//            += -= *= /= &= |= ^= %= <<= >>= >>>=
+
+    function isOperatorChar(ch) {
+        return "=><!~?:.&|+-*/^%".indexOf(ch) >= 0;
+    }
+
+// cursor control
 
     function isEOF() {
         return index >= source.length;
@@ -34,6 +60,7 @@
         if (index > 0)
             index -= 1;
     }
+
     function throwUnexpected(token) {
         if (token.type === Token.EOF) {
             throw {
@@ -92,10 +119,10 @@
         switch (peekChar()) {
             case '\u0009': // tab
             case '\u000B': // vertical tab
-            case '\u000D': // carriage return
             case ' ':
                 return 0; // whitespace but not line break
             case '\u000A': // line feed
+            case '\u000D': // carriage return
                 return 1; // line break
             case '/':
                 return 2; // slash
@@ -113,10 +140,10 @@
         (3 << 0) + (3 << 3) + (3 << 6) + (4 << 9) + (3 << 12), // 3 - plain
         (3 << 0) + (3 << 3) + (0 << 6) + (4 << 9) + (3 << 12)  // 4 - plain after *
     ];
-    // 5 - bad token
+    // 5 - token starting from /
     // 6 - start of lexeme
 
-    function skipComment() {
+    function parseComment() {
         var charType, state = 0;
 
         while (!isEOF() && (state < 5)) {
@@ -129,13 +156,15 @@
                 retreat();
             }
         }
+
+        if (isEOF() && state != 0)
+            throwUnexpected(Token.EOF);
     }
 
+    function parseToken() {
+        var token;
 
-    function lex() {
-        var ch, token;
-
-        skipComment();
+        parseComment();
 
         if (isEOF()) {
             return {
@@ -143,12 +172,19 @@
             };
         }
 
-        token = scanPunctuator();
-        if (typeof token !== 'undefined') {
-            return token;
+        var ch = lookAhead(1);
+
+        if (isSeparator(ch)) {
+            advance();
+            return {
+                type: Token.Separator,
+                value: ch
+            }
         }
 
-        ch = peekChar();
+        if (isOperatorChar(ch)) {
+            return parseOperator();
+        }
 
         if (ch === '\'' || ch === '"') {
             return scanStringLiteral();
@@ -168,16 +204,6 @@
         };
     }
 
-    function lookahead() {
-        var token,
-            pos = index;
-
-        pos = index;
-        token = lex();
-        index = pos;
-
-        return token;
-    }
 
     function parseAccessSpecifier() {
         var ch = lookAhead(2);
@@ -195,20 +221,21 @@
             default: throw {
                 message: 'Unexpected Access Specifier'
             }
-
         }
+    }
 
+    function parseEFIdentifier() {
 
     }
 
     function parseExternalFunction() {
         var functionElement = {};
 
-        functionElement['accessSpecifier'] = parseAccessSpecifier();
-        functionElement['identifier'] = parseIdentifier();
+        functionElement['AccessSpecifier'] = parseAccessSpecifier();
+        functionElement['Identifier'] = parseEFIdentifier();
 
         expect('(');
-        functionElement['arguments'] = parseArguments();
+        functionElement['Arguments'] = parseEFArguments();
         expect(')');
 
         parseBlock();

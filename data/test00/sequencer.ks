@@ -26,6 +26,6 @@ fusion sorted_sequencer(@sorter) {
         return true;
     }
 
-    control(check([3, 1, 2], [1, 2, 3], sorter.sort));
-    control(check([4, 5, 3, 2, 1, 4], [1, 2, 3, 4, 4, 5], sorter.sort));
+    test(check([3, 1, 2], [1, 2, 3], sorter.sort));
+    test(check([4, 5, 3, 2, 1, 4], [1, 2, 3, 4, 4, 5], sorter.sort));
 }
