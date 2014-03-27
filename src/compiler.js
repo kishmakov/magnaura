@@ -202,6 +202,92 @@
         };
     }
 
+    function parseStringLiteral() {
+        var str = '', ch;
+        var quote = lookAhead();
+        advance();
+
+        if (quote !== '\'' && quote !== '"') {
+            throw {
+                message: 'Unexpected start of string literal: ' + quote
+            };
+        }
+
+        while (index < source.length) {
+            ch = lookAhead(); advance();
+
+            if (ch === quote) {
+                break;
+            } else if (ch === '\\') {
+                str += ch; str += lookAhead(); advance();
+            } else {
+                str += ch;
+            }
+        }
+
+        return {
+            type: Token.StringLiteral,
+            value: str
+        };
+    }
+
+    function parseNumericLiteral() {
+        var ch = lookAhead(); advance();
+
+        if (!isDigit(ch) && (ch !== '.')) {
+            throw {
+                message: 'Unexpected start of numeric literal: ' + ch
+            }
+        }
+
+        var number = ch;
+        if (ch === '.') {
+            number = '0' + number;
+        }
+
+        while (true) {
+            ch = lookAhead();
+            if (!isDigit(ch)) {
+                break;
+            }
+            number += ch; advance();
+        }
+
+        if (number === '0.') {
+            throw {
+                message: 'Expecting decimal digits after the dot sign'
+            };
+        }
+
+        if (ch === 'e' || ch === 'E') {
+            number += ch; advance();
+            ch = lookAhead();
+
+            if (ch === '+' || ch === '-') {
+                number += ch; advance();
+                ch = lookAhead();
+            }
+
+            if (!isDigit(ch)) {
+                throw {
+                    message: 'Expecting decimal digits after the exponent sign'
+                };
+            }
+
+            while (true) {
+                ch = lookAhead();
+                if (!isDigit(ch)) {
+                    break;
+                }
+                number += ch; advance();
+            }
+        }
+
+        return {
+            type: Token.NumericLiteral,
+            value: parseFloat(number)
+        };
+    }
 
     function parseToken() {
         var token;
@@ -214,7 +300,7 @@
             };
         }
 
-        var ch = lookAhead(1);
+        var ch = lookAhead();
 
         if (isSeparator(ch)) {
             advance();
@@ -224,16 +310,16 @@
             }
         }
 
-        if (isOperatorChar(ch)) {
-            return parseOperator();
-        }
-
         if (ch === '\'' || ch === '"') {
             return parseStringLiteral();
         }
 
         if (ch === '.' || isDecimalDigit(ch)) {
             return parseNumericLiteral();
+        }
+
+        if (isOperatorChar(ch)) {
+            return parseOperator();
         }
 
         token = parseIdentifier();
