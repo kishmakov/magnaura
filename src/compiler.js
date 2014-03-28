@@ -12,9 +12,9 @@
         AccessSpecifier: 'AccessSpecifier',
         BooleanLiteral: 'BooleanLiteral',
         EOF: 'EOF',
-        FutureReservedWord: 'FutureReservedWord',
         Identifier: 'Identifier',
-        Keyword: 'Keyword',
+        JSKeyword: 'JSKeyword',
+        KSKeyword: 'KSKeyword',
         NullLiteral: 'NullLiteral',
         NumericLiteral: 'NumericLiteral',
         Operator: 'Operator',
@@ -39,6 +39,50 @@
     function isOperatorChar(ch) {
         return "=><!~?:.&|+-*/^%".indexOf(ch) >= 0;
     }
+
+// syntax detection
+
+    function isJSKeyword(id) {
+        switch (id) {
+            case 'break':
+            case 'case':
+            case 'continue':
+            case 'debugger':
+            case 'default':
+            case 'delete':
+            case 'do':
+            case 'else':
+            case 'for':
+            case 'function':
+            case 'if':
+            case 'in':
+            case 'instanceof':
+            case 'new':
+            case 'return':
+            case 'switch':
+            case 'this':
+            case 'typeof':
+            case 'var':
+            case 'void':
+            case 'while':
+            case 'with':
+                return true;
+        }
+        return false;
+    }
+
+    function isKSKeyword(id) {
+        switch (id) {
+            case 'public':
+            case 'private':
+            case 'fusion':
+            case 'control':
+                return true;
+        }
+
+        return false;
+    }
+
 
 // cursor control
 
@@ -181,7 +225,7 @@
             2: ['<=', '>=', '==', '!=', '++', '--', '<<', '>>',
                 '&&', '||', '+=', '-=', '*=', '%=', '&=', '|=', '^=', '/='],
             1 : ['.', '<', '>', '+', '-', '*', '%', '&', '|', '^', '!', '~', '?', ':', '=', '/']
-        }
+        };
 
         for (var i = 4; i > 0; i--) {
             var prefix = ahead.substr(0, i);
@@ -289,6 +333,60 @@
         };
     }
 
+    function parseIdentifier() {
+        var ch = lookAhead(); advance();
+
+        if (!isLetter(ch) && ch !== '_' && ch !== '@') {
+            throw {
+                message: 'Unexpected first char \'' + ch + '\' in identifier scan'
+            };
+        }
+
+        var id = ch;
+
+        while (true) {
+            ch = lookAhead();
+            if (isLetter(ch) || isDigit(ch) || ch === '_') {
+                id += ch;
+                advance();
+            } else {
+                break;
+            }
+        }
+
+        if (isJSKeyword(id)) {
+            return {
+                type: Token.JSKeyword,
+                value: id
+            };
+        }
+
+        if (isKSKeyword(id)) {
+            return {
+                type: Token.KSKeyword,
+                value: id
+            }
+        }
+
+        if (id === 'null') {
+            return {
+                type: Token.NullLiteral
+            };
+        }
+
+        if (id === 'true' || id === 'false') {
+            return {
+                type: Token.BooleanLiteral,
+                value: id
+            };
+        }
+
+        return {
+            type: Token.Identifier,
+            value: id
+        };
+    }
+
     function parseToken() {
         var token;
 
@@ -310,50 +408,19 @@
             }
         }
 
-        if (ch === '\'' || ch === '"') {
-            return parseStringLiteral();
-        }
-
-        if (ch === '.' || isDecimalDigit(ch)) {
-            return parseNumericLiteral();
-        }
-
         if (isOperatorChar(ch)) {
             return parseOperator();
         }
 
-        token = parseIdentifier();
-        if (typeof token !== 'undefined') {
-            return token;
+        if (ch === '\'' || ch === '"') {
+            return parseStringLiteral();
         }
 
-        throw {
-            message: 'Unknown token from character ' + ch
-        };
-    }
-
-
-    function parseAccessSpecifier() {
-        var ch = lookAhead(2);
-
-        switch (ch) {
-            case 'pu':
-                expect('public');
-                return 'public';
-            case 'pr':
-                expect('private');
-                return 'private';
-            case 'fu':
-                expect('fusion');
-                return 'fusion';
-            default: throw {
-                message: 'Unexpected Access Specifier'
-            }
+        if (ch === '.' || isDigit(ch)) {
+            return parseNumericLiteral();
         }
-    }
 
-    function parseEFIdentifier() {
-
+        return parseIdentifier();
     }
 
     function parseExternalFunction() {
@@ -372,40 +439,51 @@
     }
 
     function parseScript() {
-        var functionElements = {
-            'public': [],
-            'private': [],
-            'fusion': []
-        };
+//        var functionElements = {
+//            'public': [],
+//            'private': [],
+//            'fusion': []
+//        };
+//
+//        var functionElement;
+//
+//        while (!isEOF()) {
+//            functionElement = parseExternalFunction();
+//            if (typeof functionElement === 'undefined')
+//                break;
+//
+//            functionElements[functionElement['accessSpecifier']].push(functionElement);
+//        }
+//
+//        return functionElements;
 
-        var functionElement;
+        var result = [];
+        var i = 0;
 
         while (!isEOF()) {
-            functionElement = parseExternalFunction();
-            if (typeof functionElement === 'undefined')
-                break;
-
-            functionElements[functionElement['accessSpecifier']].push(functionElement);
+            result.push(parseToken());
+            if (++i % 10 == 0)
+                i += 0;
         }
 
-        return functionElements;
+        return result;
     }
 
     exports.parse = function (source_string) {
         source = source_string;
         index = 0;
 
-        function ParsedObject(len) {
-            this.len = len;
-        }
-
-        ParsedObject.prototype.sayHi = function (name) {
-            return 'Hey, ' + name + '! Hash is \'' + tools.SHA256('H' + this.len) + '\'';
-        };
+//        function ParsedObject(len) {
+//            this.len = len;
+//        }
+//
+//        ParsedObject.prototype.sayHi = function (name) {
+//            return 'Hey, ' + name + '! Hash is \'' + tools.SHA256('H' + this.len) + '\'';
+//        };
 
 //        return new ParsedObject(source_string.length);
 
-    return parseScript();
+        return parseScript();
     }
 
 
