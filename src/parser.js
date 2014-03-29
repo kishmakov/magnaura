@@ -73,9 +73,6 @@
 
     function isKSKeyword(id) {
         switch (id) {
-            case 'public':
-            case 'private':
-            case 'fusion':
             case 'control':
                 return true;
         }
@@ -83,6 +80,16 @@
         return false;
     }
 
+    function isAccessSpecifier(id) {
+        switch (id) {
+            case 'public':
+            case 'private':
+            case 'fusion':
+                return true;
+        }
+
+        return false;
+    }
 
 // cursor control
 
@@ -104,24 +111,6 @@
         } else  {
             index -= 1;
         }
-    }
-
-    function throwUnexpected(token) {
-        if (token.type === Token.EOF) {
-            throw {
-                message: 'Unexpected <EOF>'
-            };
-        }
-
-        var s = token.value;
-
-        if (s.length > 10) {
-            s = s.substr(0, 10) + '...';
-        }
-
-        throw {
-            message: 'Unexpected token ' + s
-        };
     }
 
     function lookAhead(length) {
@@ -357,6 +346,13 @@
             }
         }
 
+        if (isAccessSpecifier(id)) {
+            return {
+                type: Token.AccessSpecifier,
+                value: id
+            }
+        }
+
         if (id === 'null') {
             return {
                 type: Token.NullLiteral
@@ -412,39 +408,91 @@
         return parseIdentifier();
     }
 
-    function parseExternalFunction() {
-        var functionElement = {};
+// logic
 
-        functionElement['AccessSpecifier'] = parseAccessSpecifier();
-        functionElement['Identifier'] = parseEFIdentifier();
+    function expectToken(msg, need, have) {
+        if (need.type !== have.type) {
+            throw {
+                message: msg + ': expected token type=' + need.type + ', found type=' + have.type
+            };
+        }
 
-        expect('(');
-        functionElement['Arguments'] = parseEFArguments();
-        expect(')');
+        if (typeof need.value !== 'undefined' && need.value != have.value) {
+            throw {
+                message: msg + ': expected ' + need.type + ' value=' + need.value + ', found value=' + have.value
+            };
+        }
 
-        parseBlock();
+    }
 
-        return functionElement;
+    function matchToken(msg, expectedType, expectedValue) {
+        var parsed = parseToken();
+
+        var expected = { type: expectedType };
+        if (arguments.length == 3)
+            expected.value = expectedValue;
+
+        expectToken(msg, expected, parsed);
+
+        return parsed;
+    }
+
+    function parseFunctionElement() {
+        var message = 'parseFunctionElement';
+        var element = { arguments: [], tokens: [] };
+
+        var as = matchToken(message, Token.AccessSpecifier);
+        element['AccessSpecifier'] = as.value;
+
+        var name = matchToken(message, Token.Identifier);
+        element['Name'] = name.value;
+
+        matchToken(message, Token.Separator, '(');
+
+        while (true) {
+            var token = parseToken();
+
+            if (token.type === Token.Separator) {
+                expectToken(message, { type: Token.Separator, value: ')' }, token);
+                break;
+            }
+
+            expectToken(message, { type: Token.Identifier }, token);
+            arguments.push(token.value);
+
+            token = parseToken();
+            expectToken(message, { type: Token.Separator }, token);
+
+            if (token.value === ')')
+            break;
+        }
+
+//        expect('(');
+//        element['Arguments'] = parseEFArguments();
+//        expect(')');
+//
+//        parseBlock();
+
+//        return element;
     }
 
     function parseScript() {
-//        var functionElements = {
-//            'public': [],
-//            'private': [],
-//            'fusion': []
-//        };
-//
-//        var functionElement;
-//
-//        while (!isEOF()) {
-//            functionElement = parseExternalFunction();
-//            if (typeof functionElement === 'undefined')
-//                break;
-//
-//            functionElements[functionElement['accessSpecifier']].push(functionElement);
-//        }
-//
-//        return functionElements;
+        var functionElements = {
+            'public': [],
+            'private': [],
+            'fusion': []
+        };
+
+        while (!isEOF()) {
+            var element = parseFunctionElement();
+
+            if (typeof element === 'undefined')
+                break;
+
+            functionElements[element['AccessSpecifier']].push(element);
+        }
+
+        return functionElements;
 
         var result = [];
         var i = 0;
@@ -461,16 +509,6 @@
     exports.parse = function (source_string) {
         source = source_string;
         index = 0;
-
-//        function ParsedObject(len) {
-//            this.len = len;
-//        }
-//
-//        ParsedObject.prototype.sayHi = function (name) {
-//            return 'Hey, ' + name + '! Hash is \'' + tools.SHA256('H' + this.len) + '\'';
-//        };
-
-//        return new ParsedObject(source_string.length);
 
         return parseScript();
     }
