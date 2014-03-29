@@ -90,27 +90,19 @@
         return index >= source.length;
     }
 
-    function advance(howMuch) {
-        var length = 1;
-
+    function advance(length) {
         if (arguments.length > 0) {
-            length = howMuch;
-        }
-
-        if (index < source.length) {
-            index += length;
+            index += length
+        } else {
+            index += 1;
         }
     }
 
-    function retreat() {
-        var length = 1;
-
+    function retreat(length) {
         if (arguments.length > 0) {
-            length = howMuch;
-        }
-
-        if (index < source.length) {
             index -= length;
+        } else  {
+            index -= 1;
         }
     }
 
@@ -132,17 +124,14 @@
         };
     }
 
-    function lookAhead(howMuch) {
-        var length = 1;
+    function lookAhead(length) {
+        if (arguments.length == 0)
+            return source.charAt(index);
 
-        if (arguments.length > 0) {
-            length = howMuch;
-        }
-
-        var start = Math.min(index, source.length - 1);
+        var start = Math.min(index, source.length);
         var found = source.substr(start, length);
-
-        for (var i = 0; i + found.length < length; i++)
+        var realLength = found.length;
+        for (var i = 0; i + source.length < length + start; i++)
             found += '\x00';
 
         return found;
@@ -189,14 +178,14 @@
     }
 
     var CommentStates = [
-        (0 << 0) + (0 << 3) + (1 << 6) + (5 << 9) + (6 << 12), // 0 - before comment
+        (0 << 0) + (0 << 3) + (1 << 6) + (6 << 9) + (6 << 12), // 0 - before comment
         (5 << 0) + (5 << 3) + (2 << 6) + (3 << 9) + (5 << 12), // 1 - after /
         (2 << 0) + (0 << 3) + (2 << 6) + (2 << 9) + (2 << 12), // 2 - line
         (3 << 0) + (3 << 3) + (3 << 6) + (4 << 9) + (3 << 12), // 3 - plain
         (3 << 0) + (3 << 3) + (0 << 6) + (4 << 9) + (3 << 12)  // 4 - plain after *
     ];
     // 5 - token starting from /
-    // 6 - start of lexeme
+    // 6 - token
 
     function parseComment() {
         var charType, state = 0;
@@ -462,7 +451,7 @@
 
         while (!isEOF()) {
             result.push(parseToken());
-            if (++i % 10 == 0)
+            if (++i % 32 == 0)
                 i += 0;
         }
 
