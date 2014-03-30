@@ -1,7 +1,5 @@
 (function (exports) {
 
-// compiler
-
     var source, index;
     var tokens, tokenIndex;
 
@@ -37,7 +35,7 @@
         return "=><!~?:.&|+-*/^%".indexOf(ch) >= 0;
     }
 
-// syntax detection
+// keywords detection
 
     function isJSKeyword(id) {
         switch (id) {
@@ -45,14 +43,12 @@
             case 'case':
             case 'continue':
             case 'default':
-            case 'delete':
             case 'do':
             case 'else':
             case 'for':
             case 'function':
             case 'if':
             case 'in':
-            case 'new':
             case 'return':
             case 'switch':
             case 'this':
@@ -85,26 +81,18 @@
         return false;
     }
 
-// navigation at char level
+// navigation at character level
 
     function isEOF() {
         return index >= source.length;
     }
 
     function advance(length) {
-        if (arguments.length > 0) {
-            index += length
-        } else {
-            index += 1;
-        }
+        index += (arguments.length > 0) ? length : 1;
     }
 
     function retreat(length) {
-        if (arguments.length > 0) {
-            index -= length;
-        } else  {
-            index -= 1;
-        }
+        index -= (arguments.length > 0) ? length : 1;
     }
 
     function lookAhead(length) {
@@ -121,10 +109,7 @@
     }
 
     function expect(need) {
-        var start = Math.min(index, source.length - 1);
-
-        var found = source.substr(start, need.length);
-
+        var found = lookAhead(need.length);
         if (found !== need) {
             throw {
                 message: 'Expected "' + need + '" found "' + found + '"'
@@ -414,7 +399,6 @@
         }
 
         tokenIndex = 0;
-//        return parseScript();
     };
 
     exports.getToken = function () {
@@ -431,10 +415,10 @@
         if (tokenIndex > 0) {
             tokenIndex--;
         }
-    }
+    };
 
-    exports.EOTokens = function () {
+    exports.isEOTokens = function () {
         return tokenIndex >= tokens.length;
-    }
+    };
 
 }(typeof exports === 'undefined' ? (tokenizer = {}) : exports));
