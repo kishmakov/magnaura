@@ -1,12 +1,9 @@
 (function (exports) {
 
-// tools
-
-    var tokenizer = require('../src/tokenizer')
-
 // compiler
 
     var source, index;
+    var tokens, tokenIndex;
 
     var Token = {
         AccessSpecifier: 'AccessSpecifier',
@@ -47,7 +44,6 @@
             case 'break':
             case 'case':
             case 'continue':
-            case 'debugger':
             case 'default':
             case 'delete':
             case 'do':
@@ -56,12 +52,10 @@
             case 'function':
             case 'if':
             case 'in':
-            case 'instanceof':
             case 'new':
             case 'return':
             case 'switch':
             case 'this':
-            case 'typeof':
             case 'var':
             case 'void':
             case 'while':
@@ -373,8 +367,6 @@
     }
 
     function parseToken() {
-        var token;
-
         parseComment();
 
         if (isEOF()) {
@@ -408,137 +400,41 @@
         return parseIdentifier();
     }
 
-// navigation at token level
+// visible part
 
-    function expectToken(msg, need, have) {
-        if (need.type !== have.type) {
-            throw {
-                message: msg + ': expected token type=' + need.type + ', found type=' + have.type
-            };
-        }
+    exports.Token = Token;
 
-        if (typeof need.value !== 'undefined' && need.value != have.value) {
-            throw {
-                message: msg + ': expected ' + need.type + ' value=' + need.value + ', found value=' + have.value
-            };
-        }
-
-    }
-
-    function matchToken(msg, expectedType, expectedValue) {
-        var parsed = parseToken();
-
-        var expected = { type: expectedType };
-        if (arguments.length == 3)
-            expected.value = expectedValue;
-
-        expectToken(msg, expected, parsed);
-
-        return parsed;
-    }
-
-// logic
-
-    function parseBlock() {
-        matchToken(message, Token.Separator, '{');
-
-        var statements = [];
+    exports.init = function (source_string) {
+        source = source_string;
+        index = 0;
+        tokens = [];
 
         while (!isEOF()) {
-
-            var token = pa
-
-            if (match('}')) {
-                break;
-            }
-            list.push(parseStatement());
+            tokens.push(parseToken());
         }
 
-        return list;
+        tokenIndex = 0;
+//        return parseScript();
+    };
 
+    exports.getToken = function () {
+        return tokens[tokenIndex];
+    };
 
-        var block = parseStatementList();
-        matchToken(message, Token.Separator, '}');
+    exports.advance = function () {
+        if (tokenIndex < tokens.length) {
+            tokenIndex++;
+        }
+    };
+
+    exports.retreat = function () {
+        if (tokenIndex > 0) {
+            tokenIndex--;
+        }
     }
 
-    function parseFunctionElement() {
-        var message = 'parseFunctionElement';
-        var element = { arguments: [], tokens: [] };
-
-        // header
-
-        var as = matchToken(message, Token.AccessSpecifier);
-        element['AccessSpecifier'] = as.value;
-
-        var name = matchToken(message, Token.Identifier);
-        element['Name'] = name.value;
-
-        matchToken(message, Token.Separator, '(');
-
-        while (true) {
-            var token = parseToken();
-
-            if (token.type === Token.Separator) {
-                expectToken(message, { type: Token.Separator, value: ')' }, token);
-                break;
-            }
-
-            expectToken(message, { type: Token.Identifier }, token);
-            arguments.push(token.value);
-
-            token = parseToken();
-            expectToken(message, { type: Token.Separator }, token);
-
-            if (token.value === ')') {
-                break;
-            }
-        }
-
-        // body
-
-        element['Body'] = parseBlock();
-
-        return element;
+    exports.EOTokens = function () {
+        return tokenIndex >= tokens.length;
     }
 
-    function parseScript() {
-        var functionElements = {
-            'public': [],
-            'private': [],
-            'fusion': []
-        };
-
-        while (!isEOF()) {
-            var element = parseFunctionElement();
-
-            if (typeof element === 'undefined') {
-                break;
-            }
-
-            functionElements[element['AccessSpecifier']].push(element);
-        }
-
-        return functionElements;
-
-        var result = [];
-        while (!isEOF()) {
-            result.push(parseToken());
-        }
-
-        return result;
-    }
-
-    exports.parse = function (source_string) {
-        var tokens = [];
-
-        tokenizer.init(source_string);
-        while (!tokenizer.EOTokens()) {
-            tokens.push(tokenizer.getToken());
-            tokenizer.advance();
-        }
-
-        return tokens;
-    }
-
-
-}(typeof exports === 'undefined' ? (parser = {}) : exports));
+}(typeof exports === 'undefined' ? (tokenizer = {}) : exports));
