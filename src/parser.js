@@ -9,6 +9,8 @@
         ContinueStatement: 'ContinueStatement',
         DoWhileStatement: 'DoWhileStatement',
         ExpressionStatement: 'ExpressionStatement',
+        ForInStatement: 'ForInStatement',
+        ForStatement: 'ForStatement',
         SequenceExpression: 'SequenceExpression'
     };
 
@@ -128,84 +130,65 @@
         return expr;
     }
 
+    function parseForControl() {
+        var control = { init: null, condition: null, final: null };
+        control['init'] = parseExpression();
+        matchSemicolon();
+        control['condition'] = parseConditionalExpression();
+        matchSemicolon();
+        control['final'] = parseExpression();
+
+        return control;
+    }
+
+    function parseForInControl() {
+        var message = 'parseForInControl';
+        var control = { variable: null, expression: null };
+        var variable = tokenizer.getToken();
+        matchToken(message, { type: Token.Identifier });
+        matchToken(message, { type: Token.JSKeyword, value: 'in' });
+        control['variable'] = variable.value;
+        control['expression'] = parseExpression();
+
+        return control;
+    }
+
     function parseForStatement() {
         var message = 'parseForStatement';
-        var init, test, update, left, right, body;
-
-        init = test = update = null;
 
         matchToken(message, Token.JSKeyword, 'for');
         matchToken(message, Token.Separator, '(');
 
-        if (sameTokens({ type: Token.JSKeyword, value: 'var' }, tokenizer.getToken()))
+        var token0 = tokenizer.getToken(); tokenizer.advance();
+        var token1 = tokenizer.getToken(); tokenizer.advance();
+        var token2 = tokenizer.getToken();
+        tokenizer.retreat(); tokenizer.retreat();
 
-        if (match(';')) {
-            lex();
-        } else {
-            if (matchKeyword('var')) {
-                lex();
-                init = parseVariableDeclarationList();
-                if (init.length === 1) {
-                    init = init[0];
-                } else {
-                    init = {
-                        type: Syntax.SequenceExpression,
-                        expressions: init
-                    };
-                }
-                if (matchKeyword('in')) {
-                    lex();
-                    left = init;
-                    right = parseExpression().expression;
-                    init = null;
-                }
-            } else {
-                init = parseExpression().expression;
-            }
-
-            if (typeof left === 'undefined') {
-                if (init.hasOwnProperty('operator') && init.operator === 'in') {
-                    left = init.left;
-                    right = init.right;
-                    init = null;
-                } else {
-                    expect(Token.Punctuator, ';');
-                }
-            }
-        }
-
-        if (typeof left === 'undefined') {
-
-            if (!match(';')) {
-                test = parseExpression().expression;
-            }
-            expect(Token.Punctuator, ';');
-
-            if (!match(')')) {
-                update = parseExpression().expression;
-            }
-        }
-
-        expect(Token.Punctuator, ')');
-
-        body = parseStatement();
-
-        if (typeof left === 'undefined') {
-            return {
-                type: Syntax.ForStatement,
-                init: init,
-                test: test,
-                update: update,
-                body: body
+        if (sameToken(token0, { type: Token.EOF }) ||
+            sameToken(token1, { type: Token.EOF }) ||
+            sameToken(token2, { type: Token.EOF })) {
+            throw {
+                message: 'Unexpected end of file in ' + message
             };
         }
 
-        return {
-            type: Syntax.ForInStatement,
-            left: left,
-            right: right,
-            body: body
-        };
+        var declaration = sameTokens(token0, { type: Token.JSKeyword, value: 'var' });
+        var forIn = sameTokens(token1, { type: Token.JSKeyword, value: 'in' }) ||
+            sameTokens(token2, { type: Token.JSKeyword, value: 'in' });
+
+        if (declaration) {
+            tokenizer.advance();
+        }
+
+        var control = forIn ? parseForInControl() : parseForControl();
+
+        matchToken(message, Token.Separator, ')');
+        var body = parseStatement();
+
+        var result = {body: body, declaration: declaration, control: control};
+        result['type'] = forIn ? Syntax.ForInStatement : Syntax.ForStatement;
+
+        return result;
     }
 
     function parseStatement() {
