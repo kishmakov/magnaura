@@ -11,9 +11,13 @@
         BreakStatement: 'BreakStatement',
         ContinueStatement: 'ContinueStatement',
         DoWhileStatement: 'DoWhileStatement',
+        Empty: 'Empty',
+        Expression: 'Expression',
         ExpressionStatement: 'ExpressionStatement',
         ForStatement: 'ForStatement',
-        SequenceExpression: 'SequenceExpression'
+        VariableDeclaration: 'VariableDeclaration',
+        VariableDeclarationList: 'VariableDeclarationList',
+        VariableDefinition: 'VariableDefinition'
     };
 
 // navigation at token level
@@ -42,8 +46,8 @@
 
         if (!ok) {
             var exception = { message: msg };
-            exception.message += ': expected token of type "' + expected.type + '" value = "' + expected.value;
-            exception.message += '", found token of type "' + found.type + '" value = "' + found.value + '"';
+            exception.message += ': expected token of type "' + expectedType + '" value = "' + expectedValue;
+            exception.message += '", found token of type "' + parsed.type + '" value = "' + parsed.value + '"';
             throw exception;
         }
 
@@ -56,9 +60,9 @@
         matchToken('Matching semicolon', Token.Separator, ';');
     }
 
-    function parseAssignmentExpression() {
-
-    }
+//    function parseAssignmentExpression() {
+//
+//    }
 
     function parseBreakStatement() {
         matchToken('parseBreakStatement', Token.JSKeyword, 'break');
@@ -122,32 +126,35 @@
             break;
         }
 
-        var expression = expressions.length > 1
-            ? { type: Syntax.SequenceExpression, expressions: expressions }
-            : expressions[0];
-
         return {
-            type: Syntax.ExpressionStatement,
-            expression: expression
-        }
+            type: Syntax.Expression,
+            expressions: expressions
+        };
     }
-
 
     function parseExpressionStatement() {
         var expr = parseExpression();
         matchSemicolon();
-        return expr;
+        return {
+            type: Syntax.ExpressionStatement,
+            expression: expr
+        };
     }
 
-    function parseForControl() {
-        var control = { init: null, condition: null, final: null };
-        control['init'] = parseExpression();
+    function parseForInitializer() {
+        var token = tokenizer.getToken();
+        if (sameTokens(token, Token.Separator, ';')) {
+            return {
+                type: Syntax.Empty
+            };
+        }
 
+        if (sameTokens(token, Token.JSKeyword, 'var')) {
+            tokenizer.advance();
+            return parseVariableDeclarationList();
+        }
 
-        matchSemicolon();
-        control['final'] = parseExpression();
-
-        return control;
+        return parseExpression();
     }
 
     function parseForStatement() {
@@ -156,17 +163,13 @@
         matchToken(message, Token.JSKeyword, 'for');
         matchToken(message, Token.Separator, '(');
 
-        var result = {type: Syntax.ForStatement, body: body, declaration: false};
-        if (sameTokens(tokenizer.getToken(), Token.JSKeyword, 'var')) {
-            result['declaration'] = true;
-            tokenizer.advance();
-        }
+        var result = {type: Syntax.ForStatement};
 
-        result['init'] = parseExpression();
+        result['init'] = parseForInitializer();
         matchSemicolon();
-        result['condition'] = parseConditionalExpression();
+        result['condition'] = parseOptionalExpression();
         matchSemicolon();
-        result['final'] = parseExpression();
+        result['final'] = parseOptionalExpression();
         matchToken(message, Token.Separator, ')');
 
         resul['body'] = parseStatement();
@@ -194,7 +197,7 @@
             }
         }
 
-        if (token.type === Token.Keyword) {
+        if (token.type === Token.JSKeyword) {
             switch (token.value) {
                 // JS
                 case 'break':
@@ -227,6 +230,72 @@
 
         return parseExpressionStatement();
     }
+
+    function parseOptionalExpression() {
+        if (sameTokens(tokenizer.getToken(), Token.Separator)) {
+            return {
+                type: Syntax.Empty
+            };
+        }
+
+        return parseExpression();
+    }
+
+    function parseVariableDeclaration() {
+        var token = tokenizer.getToken();
+        matchToken('parseVariableDeclaration', Token.Identifier);
+        return {
+            type: Syntax.VariableDeclaration,
+            id: token.value,
+            initializer:  parseVariableInitializer()
+        };
+    }
+
+    function parseVariableDeclarationList() {
+        var declarations = [];
+
+        while (true) {
+           declarations.push(parseVariableDeclaration());
+            if (sameTokens(tokenizer.getToken(), Token.Separator, ',')) {
+                tokenizer.advance();
+                continue;
+            }
+            break;
+        }
+
+        return {
+            type: Syntax.VariableDeclarationList,
+            declarations: declarations
+        };
+    }
+
+    function parseVariableDefinition() {
+        matchToken('parseVariableDefinition', Token.JSKeyword, 'var');
+        return {
+            type: Syntax.VariableDefinition,
+            list: parseVariableDeclarationList()
+        };
+    }
+
+    function parseVariableInitializer() {
+        if (sameTokens(tokenizer.getToken(), Token.Operator, '=')) {
+            tokenizer.advance();
+            return parseAssignmentExpression();
+        }
+
+        return {
+            type: Syntax.Empty
+        };
+    }
+
+    function parseVariableStatement() {
+        matchToken('parseVariableStatement', Token.JSKeyword, 'var');
+        var result = parseVariableDeclarationList();
+        matchSemicolon();
+        return result;
+    }
+
+// external functions
 
     function parseFunctionElement() {
         var message = 'parseFunctionElement';
