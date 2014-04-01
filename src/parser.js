@@ -1,3 +1,6 @@
+// This parser is based on reduced JS grammar, see
+// http://www-archive.mozilla.org/js/language/grammar14.html
+
 (function (exports) {
 
     var tokenizer = require('../src/tokenizer');
@@ -9,33 +12,35 @@
         ContinueStatement: 'ContinueStatement',
         DoWhileStatement: 'DoWhileStatement',
         ExpressionStatement: 'ExpressionStatement',
-        ForInStatement: 'ForInStatement',
         ForStatement: 'ForStatement',
         SequenceExpression: 'SequenceExpression'
     };
 
 // navigation at token level
 
-    function sameTokens(need, have) {
-        if (need.type !== have.type) {
-            return false
+    function sameTokens(have, expectedType, expectedValue) {
+        var result = true;
+
+        if (arguments.length === 2) {
+            result = result && have.type === expectedType;
         }
 
-        return (typeof need.value !== 'undefined')
-            ? (need.value === have.value)
-            : true;
+        if (arguments.length === 3) {
+            result = result && have.value === expectedValue;
+        }
+
+        return result;
     }
 
     function matchToken(msg, expectedType, expectedValue) {
         var parsed = tokenizer.getToken();
         tokenizer.advance();
 
-        var expected = { type: expectedType };
-        if (arguments.length == 3) {
-            expected.value = expectedValue;
-        }
+        var ok = arguments.length == 3
+            ? sameTokens(parsed, expectedType, expectedValue)
+            : sameTokens(parsed, expectedType);
 
-        if (sameTokens(expected, parsed)) {
+        if (!ok) {
             var exception = { message: msg };
             exception.message += ': expected token of type "' + expected.type + '" value = "' + expected.value;
             exception.message += '", found token of type "' + found.type + '" value = "' + found.value + '"';
@@ -49,6 +54,10 @@
 
     function matchSemicolon() {
         matchToken('Matching semicolon', Token.Separator, ';');
+    }
+
+    function parseAssignmentExpression() {
+
     }
 
     function parseBreakStatement() {
@@ -106,7 +115,7 @@
 
         while (true) {
             expressions.push(parseAssignmentExpression());
-            if (sameTokens({ type: Token.Separator, value: ',' }, tokenizer.getToken())) {
+            if (sameTokens(tokenizer.getToken(), Token.Separator, ',')) {
                 tokenizer.advance();
                 continue;
             }
@@ -133,22 +142,10 @@
     function parseForControl() {
         var control = { init: null, condition: null, final: null };
         control['init'] = parseExpression();
-        matchSemicolon();
-        control['condition'] = parseConditionalExpression();
+
+
         matchSemicolon();
         control['final'] = parseExpression();
-
-        return control;
-    }
-
-    function parseForInControl() {
-        var message = 'parseForInControl';
-        var control = { variable: null, expression: null };
-        var variable = tokenizer.getToken();
-        matchToken(message, { type: Token.Identifier });
-        matchToken(message, { type: Token.JSKeyword, value: 'in' });
-        control['variable'] = variable.value;
-        control['expression'] = parseExpression();
 
         return control;
     }
@@ -159,34 +156,20 @@
         matchToken(message, Token.JSKeyword, 'for');
         matchToken(message, Token.Separator, '(');
 
-        var token0 = tokenizer.getToken(); tokenizer.advance();
-        var token1 = tokenizer.getToken(); tokenizer.advance();
-        var token2 = tokenizer.getToken();
-        tokenizer.retreat(); tokenizer.retreat();
-
-        if (sameToken(token0, { type: Token.EOF }) ||
-            sameToken(token1, { type: Token.EOF }) ||
-            sameToken(token2, { type: Token.EOF })) {
-            throw {
-                message: 'Unexpected end of file in ' + message
-            };
-        }
-
-        var declaration = sameTokens(token0, { type: Token.JSKeyword, value: 'var' });
-        var forIn = sameTokens(token1, { type: Token.JSKeyword, value: 'in' }) ||
-            sameTokens(token2, { type: Token.JSKeyword, value: 'in' });
-
-        if (declaration) {
+        var result = {type: Syntax.ForStatement, body: body, declaration: false};
+        if (sameTokens(tokenizer.getToken(), Token.JSKeyword, 'var')) {
+            result['declaration'] = true;
             tokenizer.advance();
         }
 
-        var control = forIn ? parseForInControl() : parseForControl();
-
+        result['init'] = parseExpression();
+        matchSemicolon();
+        result['condition'] = parseConditionalExpression();
+        matchSemicolon();
+        result['final'] = parseExpression();
         matchToken(message, Token.Separator, ')');
-        var body = parseStatement();
 
-        var result = {body: body, declaration: declaration, control: control};
-        result['type'] = forIn ? Syntax.ForInStatement : Syntax.ForStatement;
+        resul['body'] = parseStatement();
 
         return result;
     }
@@ -280,7 +263,7 @@
         matchToken(message, Token.Separator, '{');
 
         while (true) {
-            if (sameTokens({ type: Token.Separator, value: '}' }, tokenizer.getToken())) {
+            if (sameTokens(tokenizer.getToken(), Token.Separator, '}')) {
                 break
             }
 

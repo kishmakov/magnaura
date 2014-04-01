@@ -1,7 +1,5 @@
 public fors() {
 	var i = 0, j = 0, k = 0;
-	var obj = {first: '1', second: '2'};
-	var s = '';
 
 	for (;;) {
 		if (i !== 1 || j !==2 || i + j !== 5)
@@ -19,10 +17,4 @@ public fors() {
 
 	for (var i = 0, j = 0; i * j < 20; i += 2, j += 1)
 		k -= i + j;
-
-	for (i in obj)
-		s += i;
-
-	for (var i in obj)
-		s += obj[i];
 }
