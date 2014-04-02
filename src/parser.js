@@ -8,13 +8,18 @@
     var Token = tokenizer.Token;
 
     var Syntax = {
+        AssignmentExpression: 'AssignmentExpression',
+        BitwiseExpression: 'BitwiseExpression',
         BreakStatement: 'BreakStatement',
+        ConditionalExpression: 'ConditionalExpression',
         ContinueStatement: 'ContinueStatement',
         DoWhileStatement: 'DoWhileStatement',
         Empty: 'Empty',
         Expression: 'Expression',
         ExpressionStatement: 'ExpressionStatement',
         ForStatement: 'ForStatement',
+        LeftSideExpression: 'LeftSideExpression',
+        LogicalExpression: 'LogicalExpression',
         VariableDeclaration: 'VariableDeclaration',
         VariableDeclarationList: 'VariableDeclarationList',
         VariableDefinition: 'VariableDefinition'
@@ -54,15 +59,99 @@
         return parsed;
     }
 
-// logic
-
     function matchSemicolon() {
         matchToken('Matching semicolon', Token.Separator, ';');
     }
 
-//    function parseAssignmentExpression() {
-//
-//    }
+    function matchAssignment(msg) {
+        var assignment = matchToken(msg, Token.Operator);
+
+        if (assignment.value !== '=' && assignment.value !== '*=' &&
+            assignment.value !== '/=' && assignment.value !== '%=' &&
+            assignment.value !== '+=' && assignment.value !== '-=' &&
+            assignment.value !== '<<=' && assignment.value !== '>>=' &&
+            assignment.value !== '>>>=' && assignment.value !== '&=' &&
+            assignment.value !== '^=' && assignment.value !== '|=') {
+            throw {
+                message: msg + ': expected assignment operator'
+            };
+        }
+
+        return assignment;
+    }
+
+    function nextIsOperator(value) {
+        return sameTokens(tokenizer.getToken(), Token.Operator, value);
+    }
+
+// logic
+
+    function parseAssignmentExpression() {
+        var message = 'parseAssignmentExpression';
+        var expression = parseConditionalExpression();
+        if (expression.type === Syntax.ConditionalExpression) {
+            return expression;
+        }
+
+        if (expression.type !== Syntax.LeftSideExpression) {
+            throw {
+                message: message + ': expected LeftSideExpression'
+            };
+        }
+
+        var assignment = matchAssignment(message);
+        return {
+            type: Syntax.AssignmentExpression,
+            operator: assignment.value,
+            left: expression,
+            right: parseAssignmentExpression()
+        };
+    }
+
+    function parseBitwiseAndExpression() {
+        var expression = parseEqualityExpression();
+
+        if (!nextIsOperator('&')) {
+            return expression;
+        }
+
+        return {
+            type: Syntax.BitwiseExpression,
+            operator: '&',
+            left: expression,
+            right: parseBitwiseAndExpression()
+        };
+    }
+
+    function parseBitwiseOrExpression() {
+        var expression = parseBitwiseXorExpression();
+
+        if (!nextIsOperator('|')) {
+            return expression;
+        }
+
+        return {
+            type: Syntax.BitwiseExpression,
+            operator: '|',
+            left: expression,
+            right: parseBitwiseOrExpression()
+        };
+    }
+
+    function parseBitwiseXorExpression() {
+        var expression = parseBitwiseAndExpression();
+
+        if (!nextIsOperator('^')) {
+            return expression;
+        }
+
+        return {
+            type: Syntax.BitwiseExpression,
+            operator: '^',
+            left: expression,
+            right: parseBitwiseXorExpression()
+        };
+    }
 
     function parseBreakStatement() {
         matchToken('parseBreakStatement', Token.JSKeyword, 'break');
@@ -77,6 +166,25 @@
         return {
             type: Syntax.BreakStatement,
             label: label
+        };
+    }
+
+    function parseConditionalExpression() {
+        var expression = parseLogicalOrExpression();
+
+        if (!nextIsOperator('?')) {
+            return expression;
+        }
+
+        matchToken(Token.Operator, '?');
+        var consequent = parseAssignmentExpression();
+        matchToken(Token.Operator, ':');
+
+        return {
+            type: Syntax.ConditionalExpression,
+            test: expression,
+            consequent: consequent,
+            alternate: parseAssignmentExpression()
         };
     }
 
@@ -132,6 +240,10 @@
         };
     }
 
+    function parseEqualityExpression() {
+
+    }
+
     function parseExpressionStatement() {
         var expr = parseExpression();
         matchSemicolon();
@@ -175,6 +287,36 @@
         resul['body'] = parseStatement();
 
         return result;
+    }
+
+    function parseLogicalAndExpression() {
+        var expression = parseBitwiseOrExpression();
+
+        if (!nextIsOperator('&&')) {
+            return expression;
+        }
+
+        return {
+            type: Syntax.LogicalExpression,
+            operator: '&&',
+            left: expression,
+            right: parseLogicalAndExpression()
+        };
+    }
+
+    function parseLogicalOrExpression() {
+        var expression = parseLogicalAndExpression();
+
+        if (!nextIsOperator('||')) {
+            return expression;
+        }
+
+        return {
+            type: Syntax.LogicalExpression,
+            operator: '||',
+            left: expression,
+            right: parseLogicalOrExpression()
+        }
     }
 
     function parseStatement() {
