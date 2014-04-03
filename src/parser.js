@@ -12,14 +12,17 @@
         AssignmentExpression: 'AssignmentExpression',
         BinaryExpression: 'BinaryExpression',
         BitwiseExpression: 'BitwiseExpression',
-        BreakStatement: 'BreakStatement',        
+        BreakStatement: 'BreakStatement',
+        CallExpression: 'CallExpression',
         ContinueStatement: 'ContinueStatement',
         DoWhileStatement: 'DoWhileStatement',
         Empty: 'Empty',
         Expression: 'Expression',
         ExpressionStatement: 'ExpressionStatement',
         ForStatement: 'ForStatement',
+        Identifier: 'Identifier',
         LeftSideExpression: 'LeftSideExpression',
+        MemberExpression: 'MemberExpression',
         UnaryExpression: 'UnaryExpression',
         UpdateExpression: 'UpdateExpression',
         VariableDeclaration: 'VariableDeclaration',
@@ -84,6 +87,10 @@
 
     function nextIsOperator(value) {
         return sameTokens(tokenizer.getToken(), Token.Operator, value);
+    }
+
+    function nextIsSeparator(value) {
+        return sameTokens(tokenizer.getToken(), Token.Separator, value);
     }
 
 // logic
@@ -208,6 +215,46 @@
         };
     }
 
+    function parseCallExpression() {
+        var message = 'parseCallExpression';
+        var expression = parsePrimaryExpression();
+
+        while (!tokenizer.isEOTokens()) {
+            if (nextIsOperator('.')) {
+                tokenizer.advance();
+                var identifier = matchToken(message, Token.Identifier);
+                var property = {
+                    type: Syntax.Identifier,
+                    name: identifier.value
+                };
+                expression = {
+                    type: Syntax.MemberExpression,
+                    object: expression,
+                    property: property
+                };
+            } else if (nextIsSeparator('[')) {
+                tokenizer.advance();
+                var property = parseExpression();
+                expresssion = {
+                    type: Syntax.MemberExpression,
+                    object: expression,
+                    property: property
+                };
+                matchToken(message, Token.Separator, ']');
+            } else if (nextIsSeparator('(')) {
+                expression = {
+                    type: Syntax.CallExpression,
+                    callee: expression,
+                    inputs: parseArguments()
+                };
+            } else {
+                break;
+            }
+        }
+
+        return expression;
+    }
+
     function parseContinueStatement() {
         matchToken('parseContinueStatement', Token.JSKeyword, 'continue');
         var token = tokenizer.getToken();
@@ -326,7 +373,7 @@
     }
 
     function parseLeftSideExpression() {
-
+        return parseCallExpression();
     }
 
     function parseLogicalAndExpression() {
