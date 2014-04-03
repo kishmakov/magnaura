@@ -8,10 +8,11 @@
     var Token = tokenizer.Token;
 
     var Syntax = {
+        ArithmeticExpression: 'ArithmeticExpression',
         AssignmentExpression: 'AssignmentExpression',
+        BinaryExpression: 'BinaryExpression',
         BitwiseExpression: 'BitwiseExpression',
-        BreakStatement: 'BreakStatement',
-        ConditionalExpression: 'ConditionalExpression',
+        BreakStatement: 'BreakStatement',        
         ContinueStatement: 'ContinueStatement',
         DoWhileStatement: 'DoWhileStatement',
         Empty: 'Empty',
@@ -19,7 +20,8 @@
         ExpressionStatement: 'ExpressionStatement',
         ForStatement: 'ForStatement',
         LeftSideExpression: 'LeftSideExpression',
-        LogicalExpression: 'LogicalExpression',
+        UnaryExpression: 'UnaryExpression',
+        UpdateExpression: 'UpdateExpression',
         VariableDeclaration: 'VariableDeclaration',
         VariableDeclarationList: 'VariableDeclarationList',
         VariableDefinition: 'VariableDefinition'
@@ -86,10 +88,28 @@
 
 // logic
 
+    function parseAdditiveExpression() {
+        var expression = parseMultiplicativeExpression();
+
+        if (!nextIsOperator('+') && !nextIsOperator('-')) {
+            return expression;
+        }
+
+        var op = tokenizer.getToken();
+        tokenizer.advance();
+
+        return {
+            type: Syntax.ArithmeticExpression,
+            operator: op.value,
+            left: expression,
+            right: parseAdditiveExpression()
+        }
+    }
+
     function parseAssignmentExpression() {
         var message = 'parseAssignmentExpression';
-        var expression = parseConditionalExpression();
-        if (expression.type === Syntax.ConditionalExpression) {
+        var expression = parseBinaryExpression();
+        if (expression.type === Syntax.BinaryExpression) {
             return expression;
         }
 
@@ -169,7 +189,7 @@
         };
     }
 
-    function parseConditionalExpression() {
+    function parseBinaryExpression() {
         var expression = parseLogicalOrExpression();
 
         if (!nextIsOperator('?')) {
@@ -181,7 +201,7 @@
         matchToken(Token.Operator, ':');
 
         return {
-            type: Syntax.ConditionalExpression,
+            type: Syntax.BinaryExpression,
             test: expression,
             consequent: consequent,
             alternate: parseAssignmentExpression()
@@ -241,6 +261,22 @@
     }
 
     function parseEqualityExpression() {
+        var expression = parseRelationalExpression();
+
+        if (!nextIsOperator('!==') && !nextIsOperator('===')
+            && !nextIsOperator('==') && !nextIsOperator('!=')) {
+            return expression;
+        }
+
+        var op = tokenizer.getToken();
+        tokenizer.advance();
+
+        return {
+            type: Syntax.BinaryExpression,
+            operator: op.value,
+            left: expression,
+            right: parseEqualityExpression()
+        };
 
     }
 
@@ -289,6 +325,10 @@
         return result;
     }
 
+    function parseLeftSideExpression() {
+
+    }
+
     function parseLogicalAndExpression() {
         var expression = parseBitwiseOrExpression();
 
@@ -297,7 +337,7 @@
         }
 
         return {
-            type: Syntax.LogicalExpression,
+            type: Syntax.BinaryExpression,
             operator: '&&',
             left: expression,
             right: parseLogicalAndExpression()
@@ -312,10 +352,28 @@
         }
 
         return {
-            type: Syntax.LogicalExpression,
+            type: Syntax.BinaryExpression,
             operator: '||',
             left: expression,
             right: parseLogicalOrExpression()
+        }
+    }
+
+    function parseMultiplicativeExpression() {
+        var expression = parseUnaryExpression();
+
+        if (!nextIsOperator('*') && !nextIsOperator('/') && !nextIsOperator('%')) {
+            return expression;
+        }
+
+        var op = tokenizer.getToken();
+        tokenizer.advance();
+
+        return {
+            type: Syntax.ArithmeticExpression,
+            operator: op.value,
+            left: expression,
+            right: parseMultiplicativeExpression()
         }
     }
 
@@ -381,6 +439,87 @@
         }
 
         return parseExpression();
+    }
+
+    function parsePostfixExpression() {
+        var expr = parseLeftSideExpression();
+
+        if (nextIsOperator('++') || nextIsOperator('--')) {
+            var op = tokenizer.getToken();
+            tokenizer.advance();
+            expr = {
+                type: Syntax.UpdateExpression,
+                operator: op.value,
+                argument: expr,
+                prefix: false
+            };
+        }
+
+        return expr;
+    }
+
+    function parseRelationalExpression() {
+        var expression = parseShiftExpression();
+
+        if (!nextIsOperator('<=') && !nextIsOperator('>=')
+            && !nextIsOperator('<') && !nextIsOperator('>')) {
+            return expression;
+        }
+
+        var op = tokenizer.getToken();
+        tokenizer.advance();
+
+        return {
+            type: Syntax.BinaryExpression,
+            operator: op.value,
+            left: expression,
+            right: parseRelationalExpression()
+        }
+    }
+
+    function parseShiftExpression() {
+        var expression = parseAdditiveExpression();
+
+        if (!nextIsOperator('<<') && !nextIsOperator('>>') && !nextIsOperator('>>>')) {
+            return expression;
+        }
+
+        var op = tokenizer.getToken();
+        tokenizer.advance();
+
+        return {
+            type: Syntax.BinaryExpression,
+            operator: op.value,
+            left: expression,
+            right: parseShiftExpression()
+        }
+    }
+
+    function parseUnaryExpression() {
+
+        if (nextIsOperator('++') || nextIsOperator('--')) {
+            var op = tokenizer.getToken();
+            tokenizer.advance();
+            return {
+                type: Syntax.UpdateExpression,
+                operator: op.value,
+                argument: parseUnaryExpression(),
+                prefix: true
+            };
+        }
+
+        if (nextIsOperator('+') || nextIsOperator('-') ||
+            nextIsOperator('~') || nextIsOperator('!')) {
+            var op = tokenizer.getToken();
+            tokenizer.advance();
+            return {
+                type: Syntax.UnaryExpression,
+                operator: op.value,
+                argument: parseUnaryExpression()
+            };
+        }
+
+        return parsePostfixExpression();
     }
 
     function parseVariableDeclaration() {

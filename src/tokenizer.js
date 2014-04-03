@@ -48,7 +48,6 @@
             case 'for':
             case 'function':
             case 'if':
-            case 'in':
             case 'return':
             case 'switch':
             case 'this':
