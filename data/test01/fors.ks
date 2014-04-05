@@ -10,7 +10,7 @@ public fors() {
 		j += i;
 
 	for (i = 0, j = 1; i + j < 50; i += j, j += 1)
-		k == i * j;
+		k += i * j;
 
 	for (var k = 0; k < 10; k++) 
 		i -= k;

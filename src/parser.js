@@ -21,6 +21,7 @@
         ExpressionStatement: 'ExpressionStatement',
         ForStatement: 'ForStatement',
         Identifier: 'Identifier',
+        IfStatement: 'IfStatement',
         LeftSideExpression: 'LeftSideExpression',
         Literal: 'Literal',
         LogicalExpression: 'LogicalExpression',
@@ -71,22 +72,23 @@
     }
 
     function isAssignment(value) {
-        return value === '=' && value === '*=' && value === '/=' &&
-            value === '%=' && value === '+=' && value === '-=' &&
-            value === '<<=' && value === '>>=' && value === '>>>=' &&
-            value === '&=' &&  value === '^=' && value === '|=';
+        return value === '=' || value === '*=' || value === '/=' ||
+            value === '%=' || value === '+=' || value === '-=' ||
+            value === '<<=' || value === '>>=' || value === '>>>=' ||
+            value === '&=' ||  value === '^=' || value === '|=';
     }
 
     function matchAssignment(msg) {
-        var assignment = matchToken(msg, Token.Operator);
+        var token = tokenizer.getToken();
+        tokenizer.advance();
 
-        if (!isAssignment(assignment)) {
+        if (token.type !== Token.Operator || !isAssignment(token.value)) {
             throw {
                 message: msg + ': expected assignment operator'
             };
         }
 
-        return assignment;
+        return token;
     }
 
     function nextIsOperator(value) {
@@ -126,7 +128,7 @@
         var expression = parseConditionalExpression();
 
         if (nextIsAssignment()) {
-            var assignment = matchAssignment(message);
+            var assignment = matchAssignment('parseAssignmentExpression');
             return {
                 type: Syntax.AssignmentExpression,
                 operator: assignment.value,
@@ -145,6 +147,7 @@
             return expression;
         }
 
+        tokenizer.advance();
         return {
             type: Syntax.BitwiseExpression,
             operator: '&',
@@ -160,6 +163,7 @@
             return expression;
         }
 
+        tokenizer.advance();
         return {
             type: Syntax.BitwiseExpression,
             operator: '|',
@@ -175,6 +179,7 @@
             return expression;
         }
 
+        tokenizer.advance();
         return {
             type: Syntax.BitwiseExpression,
             operator: '^',
@@ -359,14 +364,13 @@
     }
 
     function parseForInitializer() {
-        var token = tokenizer.getToken();
-        if (sameTokens(token, Token.Separator, ';')) {
+        if (nextIsSeparator(';')) {
             return {
                 type: Syntax.Empty
             };
         }
 
-        if (sameTokens(token, Token.JSKeyword, 'var')) {
+        if (sameTokens(tokenizer.getToken(), Token.JSKeyword, 'var')) {
             tokenizer.advance();
             return parseVariableDeclarationList();
         }
@@ -394,6 +398,27 @@
         return result;
     }
 
+    function parseIfStatement() {
+        var message = 'parseIfStatement';
+        matchToken(message, Token.JSKeyword, 'if');
+        matchToken(message, Token.Separator, '(');
+        var test = parseExpression();
+        matchToken(message, Token.Separator, ')');
+        var consequent = parseStatement();
+        var alternate;
+        if (sameTokens(tokenizer.getToken(), Token.JSKeyword, 'else')) {
+            tokenizer.advance();
+            alternate = parseStatement();
+        }
+
+        return {
+            type: Syntax.IfStatement,
+            test: test.expressions,
+            consequent: consequent,
+            alternate: alternate
+        };
+    }
+
     function parseLeftSideExpression() {
         return parseCallExpression();
     }
@@ -405,6 +430,7 @@
             return expression;
         }
 
+        tokenizer.advance();
         return {
             type: Syntax.LogicalExpression,
             operator: '&&',
@@ -420,6 +446,7 @@
             return expression;
         }
 
+        tokenizer.advance();
         return {
             type: Syntax.LogicalExpression,
             operator: '||',
@@ -716,7 +743,7 @@
 
     function parseFunctionElement() {
         var message = 'parseFunctionElement';
-        var element = { Arguments: [], Statements: [] };
+        var element = { Arguments: [] };
 
         // header
 

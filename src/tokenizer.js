@@ -50,7 +50,6 @@
             case 'if':
             case 'return':
             case 'switch':
-            case 'this':
             case 'var':
             case 'void':
             case 'while':
