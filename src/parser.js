@@ -10,8 +10,8 @@
     var Syntax = {
         ArithmeticExpression: 'ArithmeticExpression',
         AssignmentExpression: 'AssignmentExpression',
-        BinaryExpression: 'BinaryExpression',
         BitwiseExpression: 'BitwiseExpression',
+        BlockStatement: 'BlockStatement',
         BreakStatement: 'BreakStatement',
         CallExpression: 'CallExpression',
         ContinueStatement: 'ContinueStatement',
@@ -22,6 +22,8 @@
         ForStatement: 'ForStatement',
         Identifier: 'Identifier',
         LeftSideExpression: 'LeftSideExpression',
+        Literal: 'Literal',
+        LogicalExpression: 'LogicalExpression',
         MemberExpression: 'MemberExpression',
         UnaryExpression: 'UnaryExpression',
         UpdateExpression: 'UpdateExpression',
@@ -68,15 +70,17 @@
         matchToken('Matching semicolon', Token.Separator, ';');
     }
 
+    function isAssignment(value) {
+        return value === '=' && value === '*=' && value === '/=' &&
+            value === '%=' && value === '+=' && value === '-=' &&
+            value === '<<=' && value === '>>=' && value === '>>>=' &&
+            value === '&=' &&  value === '^=' && value === '|=';
+    }
+
     function matchAssignment(msg) {
         var assignment = matchToken(msg, Token.Operator);
 
-        if (assignment.value !== '=' && assignment.value !== '*=' &&
-            assignment.value !== '/=' && assignment.value !== '%=' &&
-            assignment.value !== '+=' && assignment.value !== '-=' &&
-            assignment.value !== '<<=' && assignment.value !== '>>=' &&
-            assignment.value !== '>>>=' && assignment.value !== '&=' &&
-            assignment.value !== '^=' && assignment.value !== '|=') {
+        if (!isAssignment(assignment)) {
             throw {
                 message: msg + ': expected assignment operator'
             };
@@ -91,6 +95,11 @@
 
     function nextIsSeparator(value) {
         return sameTokens(tokenizer.getToken(), Token.Separator, value);
+    }
+
+    function nextIsAssignment() {
+        var token = tokenizer.getToken();
+        return token.type === Token.Operator && isAssignment(token.value);
     }
 
 // logic
@@ -114,25 +123,19 @@
     }
 
     function parseAssignmentExpression() {
-        var message = 'parseAssignmentExpression';
-        var expression = parseBinaryExpression();
-        if (expression.type === Syntax.BinaryExpression) {
-            return expression;
-        }
+        var expression = parseConditionalExpression();
 
-        if (expression.type !== Syntax.LeftSideExpression) {
-            throw {
-                message: message + ': expected LeftSideExpression'
+        if (nextIsAssignment()) {
+            var assignment = matchAssignment(message);
+            return {
+                type: Syntax.AssignmentExpression,
+                operator: assignment.value,
+                left: expression,
+                right: parseAssignmentExpression()
             };
         }
 
-        var assignment = matchAssignment(message);
-        return {
-            type: Syntax.AssignmentExpression,
-            operator: assignment.value,
-            left: expression,
-            right: parseAssignmentExpression()
-        };
+        return expression;
     }
 
     function parseBitwiseAndExpression() {
@@ -180,6 +183,25 @@
         };
     }
 
+    function parseBlock() {
+        var statements = [];
+
+        matchToken('parseBlock', Token.Separator, '{');
+        while (true) {
+            if (nextIsSeparator('}')) {
+                break
+            }
+
+            statements.push(parseStatement());
+        }
+        matchToken('parseBlock', Token.Separator, '}');
+
+        return {
+            type: Syntax.BlockStatement,
+            statements: statements
+        }
+    }
+
     function parseBreakStatement() {
         matchToken('parseBreakStatement', Token.JSKeyword, 'break');
         var token = tokenizer.getToken();
@@ -196,7 +218,7 @@
         };
     }
 
-    function parseBinaryExpression() {
+    function parseConditionalExpression() {
         var expression = parseLogicalOrExpression();
 
         if (!nextIsOperator('?')) {
@@ -208,7 +230,7 @@
         matchToken(Token.Operator, ':');
 
         return {
-            type: Syntax.BinaryExpression,
+            type: Syntax.LogicalExpression,
             test: expression,
             consequent: consequent,
             alternate: parseAssignmentExpression()
@@ -294,7 +316,7 @@
 
         while (true) {
             expressions.push(parseAssignmentExpression());
-            if (sameTokens(tokenizer.getToken(), Token.Separator, ',')) {
+            if (nextIsSeparator(',')) {
                 tokenizer.advance();
                 continue;
             }
@@ -319,7 +341,7 @@
         tokenizer.advance();
 
         return {
-            type: Syntax.BinaryExpression,
+            type: Syntax.LogicalExpression,
             operator: op.value,
             left: expression,
             right: parseEqualityExpression()
@@ -328,11 +350,11 @@
     }
 
     function parseExpressionStatement() {
-        var expr = parseExpression();
+        var expression = parseExpression();
         matchSemicolon();
         return {
             type: Syntax.ExpressionStatement,
-            expression: expr
+            expression: expression
         };
     }
 
@@ -367,7 +389,7 @@
         result['final'] = parseOptionalExpression();
         matchToken(message, Token.Separator, ')');
 
-        resul['body'] = parseStatement();
+        result['body'] = parseStatement();
 
         return result;
     }
@@ -384,7 +406,7 @@
         }
 
         return {
-            type: Syntax.BinaryExpression,
+            type: Syntax.LogicalExpression,
             operator: '&&',
             left: expression,
             right: parseLogicalAndExpression()
@@ -399,7 +421,7 @@
         }
 
         return {
-            type: Syntax.BinaryExpression,
+            type: Syntax.LogicalExpression,
             operator: '||',
             left: expression,
             right: parseLogicalOrExpression()
@@ -424,6 +446,71 @@
         }
     }
 
+    function parsePrimaryExpression() {
+        var message = 'parsePrimaryExpression';
+        if (nextIsSeparator('[')) {
+            return parseArrayInitialiser();
+        }
+
+        if (nextIsSeparator('{')) {
+            return parseObjectInitialiser();
+        }
+
+        if (nextIsSeparator('(')) {
+            tokenizer.advance();
+            var expression = parseExpression();
+            matchToken(message, Token.Separator, ')');
+            return expression;
+        }
+
+        var token = tokenizer.getToken();
+
+        if (sameTokens(token, Token.JSKeyword, 'function')) {
+            return parseFunctionExpression();
+        }
+
+        tokenizer.advance();
+
+        if (token.type === Token.Identifier) {
+            return {
+                type: Syntax.Identifier,
+                name: token.value
+            };
+        }
+
+        if (token.type === Token.BooleanLiteral) {
+            return {
+                type: Syntax.Literal,
+                value: (token.value === 'true')
+            };
+        }
+
+        if (token.type === Token.NullLiteral) {
+            return {
+                type: Syntax.Literal,
+                value: null
+            };
+        }
+
+        if (token.type === Token.NumericLiteral) {
+            return {
+                type: Syntax.Literal,
+                value: token.value
+            };
+        }
+
+        if (token.type === Token.StringLiteral) {
+            return {
+                type: Syntax.Literal,
+                value: token.value
+            };
+        }
+
+        throw {
+            message: message + ': unexpected token'
+        }
+    }
+
     function parseStatement() {
         if (tokenizer.isEOTokens()) {
             throw {
@@ -433,10 +520,13 @@
 
         var token = tokenizer.getToken();
 
-        if (token.type === Token.Punctuator) {
+        if (token.type === Token.Separator) {
             switch (token.value) {
                 case ';':
-                    return parseEmptyStatement();
+                    tokenizer.advance();
+                    return {
+                        type: Syntax.Empty
+                    };
                 case '{':
                     return parseBlock();
                 default:
@@ -489,20 +579,20 @@
     }
 
     function parsePostfixExpression() {
-        var expr = parseLeftSideExpression();
+        var expression = parseLeftSideExpression();
 
         if (nextIsOperator('++') || nextIsOperator('--')) {
             var op = tokenizer.getToken();
             tokenizer.advance();
-            expr = {
+            expression = {
                 type: Syntax.UpdateExpression,
                 operator: op.value,
-                argument: expr,
+                argument: expression,
                 prefix: false
             };
         }
 
-        return expr;
+        return expression;
     }
 
     function parseRelationalExpression() {
@@ -517,7 +607,7 @@
         tokenizer.advance();
 
         return {
-            type: Syntax.BinaryExpression,
+            type: Syntax.LogicalExpression,
             operator: op.value,
             left: expression,
             right: parseRelationalExpression()
@@ -535,7 +625,7 @@
         tokenizer.advance();
 
         return {
-            type: Syntax.BinaryExpression,
+            type: Syntax.LogicalExpression,
             operator: op.value,
             left: expression,
             right: parseShiftExpression()
@@ -570,12 +660,11 @@
     }
 
     function parseVariableDeclaration() {
-        var token = tokenizer.getToken();
-        matchToken('parseVariableDeclaration', Token.Identifier);
+        var token = matchToken('parseVariableDeclaration', Token.Identifier);
         return {
             type: Syntax.VariableDeclaration,
             id: token.value,
-            initializer:  parseVariableInitializer()
+            initializer: parseVariableInitializer()
         };
     }
 
@@ -584,7 +673,7 @@
 
         while (true) {
            declarations.push(parseVariableDeclaration());
-            if (sameTokens(tokenizer.getToken(), Token.Separator, ',')) {
+            if (nextIsSeparator(',')) {
                 tokenizer.advance();
                 continue;
             }
@@ -606,7 +695,7 @@
     }
 
     function parseVariableInitializer() {
-        if (sameTokens(tokenizer.getToken(), Token.Operator, '=')) {
+        if (nextIsOperator('=')) {
             tokenizer.advance();
             return parseAssignmentExpression();
         }
@@ -647,7 +736,7 @@
             tokenizer.advance();
             element['Arguments'].push(token.value);
             token = tokenizer.getToken();
-            if (token.type !== Token.Separator || token.value !== ';') {
+            if (!nextIsSeparator(',')) {
                 break;
             }
             tokenizer.advance();
@@ -657,17 +746,7 @@
 
         // body
 
-        matchToken(message, Token.Separator, '{');
-
-        while (true) {
-            if (sameTokens(tokenizer.getToken(), Token.Separator, '}')) {
-                break
-            }
-
-            element['Statement'].push(parseStatement());
-        }
-
-        matchToken(message, Token.Separator, '}');
+        element['Body'] = parseBlock();
 
         return element;
     }
