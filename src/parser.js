@@ -8,6 +8,7 @@
     var Token = tokenizer.Token;
 
     var Syntax = {
+        ArrayExpression: 'ArrayExpression',
         ArithmeticExpression: 'ArithmeticExpression',
         AssignmentExpression: 'AssignmentExpression',
         BitwiseExpression: 'BitwiseExpression',
@@ -49,7 +50,7 @@
         return result;
     }
 
-    function matchToken(msg, expectedType, expectedValue) {
+    function matchToken(expectedType, expectedValue) {
         var parsed = tokenizer.getToken();
         tokenizer.advance();
 
@@ -58,9 +59,9 @@
             : sameTokens(parsed, expectedType);
 
         if (!ok) {
-            var exception = { message: msg };
-            exception.message += ': expected token of type "' + expectedType + '" value = "' + expectedValue;
-            exception.message += '", found token of type "' + parsed.type + '" value = "' + parsed.value + '"';
+            var exception = { message: '' };
+            exception.message += 'expected t="' + expectedType + '" v="' + expectedValue;
+            exception.message += 'found t "' + parsed.type + '" v="' + parsed.value + '"';
             throw exception;
         }
 
@@ -68,7 +69,7 @@
     }
 
     function matchSemicolon() {
-        matchToken('Matching semicolon', Token.Separator, ';');
+        matchToken(Token.Separator, ';');
     }
 
     function isAssignment(value) {
@@ -122,6 +123,26 @@
             left: expression,
             right: parseAdditiveExpression()
         }
+    }
+
+    function parseArrayInitializer() {
+        var elements = [];
+        matchToken(Token.Separator, '[');
+
+        while (!nextIsSeparator(']')) {
+            elements.push(parseAssignmentExpression());
+            if (nextIsSeparator(',')) {
+                tokenizer.advance();
+            }
+        }
+
+        matchToken(Token.Separator, ']');
+
+        return {
+            type: Syntax.ArrayExpression,
+            elements: elements
+        };
+
     }
 
     function parseAssignmentExpression() {
@@ -191,7 +212,7 @@
     function parseBlock() {
         var statements = [];
 
-        matchToken('parseBlock', Token.Separator, '{');
+        matchToken(Token.Separator, '{');
         while (true) {
             if (nextIsSeparator('}')) {
                 break
@@ -199,7 +220,7 @@
 
             statements.push(parseStatement());
         }
-        matchToken('parseBlock', Token.Separator, '}');
+        matchToken(Token.Separator, '}');
 
         return {
             type: Syntax.BlockStatement,
@@ -208,7 +229,7 @@
     }
 
     function parseBreakStatement() {
-        matchToken('parseBreakStatement', Token.JSKeyword, 'break');
+        matchToken(Token.JSKeyword, 'break');
         var token = tokenizer.getToken();
         var label = null;
         if (token.type === Token.Identifier) {
@@ -243,13 +264,12 @@
     }
 
     function parseCallExpression() {
-        var message = 'parseCallExpression';
         var expression = parsePrimaryExpression();
 
         while (!tokenizer.isEOTokens()) {
             if (nextIsOperator('.')) {
                 tokenizer.advance();
-                var identifier = matchToken(message, Token.Identifier);
+                var identifier = matchToken(Token.Identifier);
                 var property = {
                     type: Syntax.Identifier,
                     name: identifier.value
@@ -267,7 +287,7 @@
                     object: expression,
                     property: property
                 };
-                matchToken(message, Token.Separator, ']');
+                matchToken(Token.Separator, ']');
             } else if (nextIsSeparator('(')) {
                 expression = {
                     type: Syntax.CallExpression,
@@ -283,7 +303,7 @@
     }
 
     function parseContinueStatement() {
-        matchToken('parseContinueStatement', Token.JSKeyword, 'continue');
+        matchToken(Token.JSKeyword, 'continue');
         var token = tokenizer.getToken();
         var label = null;
         if (token.type === Token.Identifier) {
@@ -299,14 +319,12 @@
     }
 
     function parseDoWhileStatement() {
-        var message = 'parseDoWhileStatement';
-
-        matchToken(message, Token.JSKeyword, 'do');
+        matchToken(Token.JSKeyword, 'do');
         var body = parseStatement();
-        matchToken(message, Token.JSKeyword, 'while');
-        matchToken(message, Token.Separator, '(');
+        matchToken(Token.JSKeyword, 'while');
+        matchToken(Token.Separator, '(');
         var expression = parseExpression();
-        matchToken(message, Token.Separator, ')');
+        matchToken(Token.Separator, ')');
         matchSemicolon();
 
         return {
@@ -379,10 +397,8 @@
     }
 
     function parseForStatement() {
-        var message = 'parseForStatement';
-
-        matchToken(message, Token.JSKeyword, 'for');
-        matchToken(message, Token.Separator, '(');
+        matchToken(Token.JSKeyword, 'for');
+        matchToken(Token.Separator, '(');
 
         var result = {type: Syntax.ForStatement};
 
@@ -391,7 +407,7 @@
         result['condition'] = parseOptionalExpression();
         matchSemicolon();
         result['final'] = parseOptionalExpression();
-        matchToken(message, Token.Separator, ')');
+        matchToken(Token.Separator, ')');
 
         result['body'] = parseStatement();
 
@@ -399,11 +415,10 @@
     }
 
     function parseIfStatement() {
-        var message = 'parseIfStatement';
-        matchToken(message, Token.JSKeyword, 'if');
-        matchToken(message, Token.Separator, '(');
+        matchToken(Token.JSKeyword, 'if');
+        matchToken(Token.Separator, '(');
         var test = parseExpression();
-        matchToken(message, Token.Separator, ')');
+        matchToken(Token.Separator, ')');
         var consequent = parseStatement();
         var alternate;
         if (sameTokens(tokenizer.getToken(), Token.JSKeyword, 'else')) {
@@ -474,9 +489,8 @@
     }
 
     function parsePrimaryExpression() {
-        var message = 'parsePrimaryExpression';
         if (nextIsSeparator('[')) {
-            return parseArrayInitialiser();
+            return parseArrayInitializer();
         }
 
         if (nextIsSeparator('{')) {
@@ -486,7 +500,7 @@
         if (nextIsSeparator('(')) {
             tokenizer.advance();
             var expression = parseExpression();
-            matchToken(message, Token.Separator, ')');
+            matchToken(Token.Separator, ')');
             return expression;
         }
 
@@ -687,7 +701,7 @@
     }
 
     function parseVariableDeclaration() {
-        var token = matchToken('parseVariableDeclaration', Token.Identifier);
+        var token = matchToken(Token.Identifier);
         return {
             type: Syntax.VariableDeclaration,
             id: token.value,
@@ -714,7 +728,7 @@
     }
 
     function parseVariableDefinition() {
-        matchToken('parseVariableDefinition', Token.JSKeyword, 'var');
+        matchToken(Token.JSKeyword, 'var');
         return {
             type: Syntax.VariableDefinition,
             list: parseVariableDeclarationList()
@@ -733,7 +747,7 @@
     }
 
     function parseVariableStatement() {
-        matchToken('parseVariableStatement', Token.JSKeyword, 'var');
+        matchToken(Token.JSKeyword, 'var');
         var result = parseVariableDeclarationList();
         matchSemicolon();
         return result;
@@ -742,18 +756,17 @@
 // external functions
 
     function parseFunctionElement() {
-        var message = 'parseFunctionElement';
         var element = { Arguments: [] };
 
         // header
 
-        var as = matchToken(message, Token.AccessSpecifier);
+        var as = matchToken(Token.AccessSpecifier);
         element['AccessSpecifier'] = as.value;
 
-        var name = matchToken(message, Token.Identifier);
+        var name = matchToken(Token.Identifier);
         element['Name'] = name.value;
 
-        matchToken(message, Token.Separator, '(');
+        matchToken(Token.Separator, '(');
 
         while (true) {
             var token = tokenizer.getToken();
@@ -769,7 +782,7 @@
             tokenizer.advance();
         }
 
-        matchToken(message, Token.Separator, ')');
+        matchToken(Token.Separator, ')');
 
         // body
 
