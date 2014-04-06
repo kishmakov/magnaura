@@ -1,5 +1,5 @@
 public sort(a) {
-    var n = a.length
+    var n = a.length;
 
     for (var i = 0; i + 1 < n; i++)
         for (var j = i + 1; j < n; j++)

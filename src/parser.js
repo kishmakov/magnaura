@@ -29,6 +29,7 @@
         LogicalExpression: 'LogicalExpression',
         MemberExpression: 'MemberExpression',
         ObjectExpression: 'ObjectExpression',
+        ReturnStatement: 'ReturnStatement',
         UnaryExpression: 'UnaryExpression',
         UpdateExpression: 'UpdateExpression',
         VariableDeclaration: 'VariableDeclaration',
@@ -230,11 +231,7 @@
         var statements = [];
 
         matchToken(Token.Separator, '{');
-        while (true) {
-            if (nextIsSeparator('}')) {
-                break
-            }
-
+        while (!nextIsSeparator('}')) {
             statements.push(parseStatement());
         }
         matchToken(Token.Separator, '}');
@@ -629,6 +626,22 @@
         }
     }
 
+    function parseReturnStatement() {
+        var argument = null;
+
+        matchToken(Token.JSKeyword, 'return');
+        if (!nextIsSeparator(';')) {
+            var token = parseExpression();
+            argument = token.value;
+        }
+        matchSemicolon();
+
+        return {
+            type: Syntax.ReturnStatement,
+            argument: argument
+        };
+    }
+
     function parseStatement() {
         if (tokenizer.isEOTokens()) {
             throw {
@@ -663,6 +676,8 @@
                     return parseDoWhileStatement();
                 case 'for':
                     return parseForStatement();
+                case 'function':
+                    return parseFunctionExpression();
                 case 'if':
                     return parseIfStatement();
                 case 'return':
