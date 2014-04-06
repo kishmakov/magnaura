@@ -3,19 +3,11 @@
     var source, index;
     var tokens, tokenIndex;
 
-    var Token = {
-        AccessSpecifier: 'AccessSpecifier',
-        BooleanLiteral: 'BooleanLiteral',
-        EOF: 'EOF',
-        Identifier: 'Identifier',
-        JSKeyword: 'JSKeyword',
-        KSKeyword: 'KSKeyword',
-        NullLiteral: 'NullLiteral',
-        NumericLiteral: 'NumericLiteral',
-        Operator: 'Operator',
-        Separator: 'Separator',
-        StringLiteral: 'StringLiteral'
-    };
+    var common = require('../src/common');
+
+// proxy for other modules
+
+    var Token = common.Token;
 
 // character detection
 
@@ -384,8 +376,6 @@
     }
 
 // visible part
-
-    exports.Token = Token;
 
     exports.init = function (source_string) {
         source = source_string;

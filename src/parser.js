@@ -3,39 +3,13 @@
 
 (function (exports) {
 
+    var common = require('../src/common');
     var tokenizer = require('../src/tokenizer');
 
-    var Token = tokenizer.Token;
+// proxy for other modules
 
-    var Syntax = {
-        ArrayExpression: 'ArrayExpression',
-        ArithmeticExpression: 'ArithmeticExpression',
-        AssignmentExpression: 'AssignmentExpression',
-        BitwiseExpression: 'BitwiseExpression',
-        BlockStatement: 'BlockStatement',
-        BreakStatement: 'BreakStatement',
-        CallExpression: 'CallExpression',
-        ContinueStatement: 'ContinueStatement',
-        DoWhileStatement: 'DoWhileStatement',
-        Empty: 'Empty',
-        Expression: 'Expression',
-        ExpressionStatement: 'ExpressionStatement',
-        ForStatement: 'ForStatement',
-        FunctionExpression: 'FunctionExpression',
-        Identifier: 'Identifier',
-        IfStatement: 'IfStatement',
-        LeftSideExpression: 'LeftSideExpression',
-        Literal: 'Literal',
-        LogicalExpression: 'LogicalExpression',
-        MemberExpression: 'MemberExpression',
-        ObjectExpression: 'ObjectExpression',
-        ReturnStatement: 'ReturnStatement',
-        UnaryExpression: 'UnaryExpression',
-        UpdateExpression: 'UpdateExpression',
-        VariableDeclaration: 'VariableDeclaration',
-        VariableDeclarationList: 'VariableDeclarationList',
-        VariableDefinition: 'VariableDefinition'
-    };
+    var Token = common.Token;
+    var Syntax = common.Syntax;
 
 // navigation at token level
 
