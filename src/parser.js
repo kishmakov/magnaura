@@ -21,12 +21,14 @@
         Expression: 'Expression',
         ExpressionStatement: 'ExpressionStatement',
         ForStatement: 'ForStatement',
+        FunctionExpression: 'FunctionExpression',
         Identifier: 'Identifier',
         IfStatement: 'IfStatement',
         LeftSideExpression: 'LeftSideExpression',
         Literal: 'Literal',
         LogicalExpression: 'LogicalExpression',
         MemberExpression: 'MemberExpression',
+        ObjectExpression: 'ObjectExpression',
         UnaryExpression: 'UnaryExpression',
         UpdateExpression: 'UpdateExpression',
         VariableDeclaration: 'VariableDeclaration',
@@ -123,6 +125,21 @@
             left: expression,
             right: parseAdditiveExpression()
         }
+    }
+
+    function parseArguments() {
+        var arguments = [];
+
+        matchToken(Token.Separator, '(');
+        while (!nextIsSeparator(')')) {
+            arguments.push(parseAssignmentExpression());
+            if (nextIsSeparator(',')) {
+                tokenizer.advance();
+            }
+        }
+        matchToken(Token.Separator, ')');
+
+        return arguments;
     }
 
     function parseArrayInitializer() {
@@ -292,7 +309,7 @@
                 expression = {
                     type: Syntax.CallExpression,
                     callee: expression,
-                    inputs: parseArguments()
+                    arguments: parseArguments()
                 };
             } else {
                 break;
@@ -414,6 +431,25 @@
         return result;
     }
 
+    function parseFunctionExpression() {
+        var id = null;
+
+        matchToken(Token.JSKeyword, 'function');
+        if (!nextIsSeparator('(')) {
+            var token = matchToken(Token.Identifier);
+            id = token.value;
+        }
+
+        params = parseParams();
+
+        return {
+            type: Syntax.FunctionExpression,
+            id: id,
+            params: params,
+            body: parseBlock()
+        };
+    }
+
     function parseIfStatement() {
         matchToken(Token.JSKeyword, 'if');
         matchToken(Token.Separator, '(');
@@ -488,13 +524,54 @@
         }
     }
 
+    function parseObjectInitializer() {
+        var properties = [];
+
+        matchToken(Token.Separator, '{');
+        while (!nextIsSeparator('}')) {
+            var key = tokenizer.getToken();
+            tokenizer.advance();
+            matchToken(Token.Separator, ':');
+            var value = parseAssignmentExpression();
+            properties.push({
+                key: key,
+                value: value
+            });
+
+            if (nextIsSeparator(',')) {
+                tokenizer.advance();
+            }
+        }
+        matchToken(Token.Separator, '}');
+
+        return {
+            type: Syntax.ObjectExpression,
+            properties: properties
+        };
+    }
+
+    function parseParams() {
+        var params = [];
+
+        matchToken(Token.Separator, '(');
+        while (!nextIsSeparator(')')) {
+            var token = matchToken(Token.Identifier);
+            params.push(token.value);
+            if (nextIsSeparator(',')) {
+                tokenizer.advance();
+            }
+        }
+        matchToken(Token.Separator, ')');
+        return params;
+    }
+
     function parsePrimaryExpression() {
         if (nextIsSeparator('[')) {
             return parseArrayInitializer();
         }
 
         if (nextIsSeparator('{')) {
-            return parseObjectInitialiser();
+            return parseObjectInitializer();
         }
 
         if (nextIsSeparator('(')) {
@@ -766,24 +843,9 @@
         var name = matchToken(Token.Identifier);
         element['Name'] = name.value;
 
-        matchToken(Token.Separator, '(');
+        // params
 
-        while (true) {
-            var token = tokenizer.getToken();
-            if (token.type !== Token.Identifier) {
-                break;
-            }
-            tokenizer.advance();
-            element['Arguments'].push(token.value);
-            token = tokenizer.getToken();
-            if (!nextIsSeparator(',')) {
-                break;
-            }
-            tokenizer.advance();
-        }
-
-        matchToken(Token.Separator, ')');
-
+        element['Arguments'] = parseParams();
         // body
 
         element['Body'] = parseBlock();
