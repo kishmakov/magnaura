@@ -1,6 +1,8 @@
 var fs = require('fs');
-var tokenizer = require('../src/tokenizer');
+
+var compiler = require('../src/compiler');
 var parser = require('../src/parser');
+var tokenizer = require('../src/tokenizer');
 
 exports['Sorter tokens.'] = function (test) {
     var sorter_source = fs.readFileSync('./data/test00/sorter.ks').toString();
@@ -30,11 +32,14 @@ exports['Sequencer tokens.'] = function (test) {
     test.done();
 };
 
-exports['Sorter parsing.'] = function (test) {
-    var sorter_source = fs.readFileSync('./data/test00/sorter.ks').toString();
-    var parsed = parser.parse(sorter_source);
+exports['Sorter parsing & compiling.'] = function (test) {
+    var sorter_script = fs.readFileSync('./data/test00/sorter.ks').toString();
+    var parsed_script = parser.parse(sorter_script);
+    var compiled_script = compiler.compile(parsed_script);
 
-    test.equal(parsed['public'].length, 1);
+    fs.writeFileSync('sorter.json', JSON.stringify(compiled_script, null, 2));
+
+    test.equal(parsed_script['public'].length, 1);
     test.done();
 };
 
