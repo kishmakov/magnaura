@@ -787,10 +787,7 @@
             break;
         }
 
-        return {
-            type: Syntax.VariableDeclarationList,
-            declarations: declarations
-        };
+        return declarations;
     }
 
     function parseVariableDefinition() {
@@ -814,9 +811,12 @@
 
     function parseVariableStatement() {
         matchToken(Token.JSKeyword, 'var');
-        var result = parseVariableDeclarationList();
+        var declarations = parseVariableDeclarationList();
         matchSemicolon();
-        return result;
+        return {
+            type: Syntax.VariableStatement,
+            list: declarations
+        };
     }
 
 // external functions

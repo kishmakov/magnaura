@@ -40,8 +40,8 @@
         UnaryExpression: 'UnaryExpression',
         UpdateExpression: 'UpdateExpression',
         VariableDeclaration: 'VariableDeclaration',
-        VariableDeclarationList: 'VariableDeclarationList',
-        VariableDefinition: 'VariableDefinition'
+        VariableDefinition: 'VariableDefinition',
+        VariableStatement: 'VariableStatement'
     };
 
 }(typeof exports === 'undefined' ? (common = {}) : exports));

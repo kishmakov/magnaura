@@ -16,24 +16,62 @@
         }
     }
 
+    function indent(deepness) {
+        var result = '';
+        for (var i = 0; i < deepness; i++) {
+            result += '\t';
+        }
+
+        return result;
+    }
+
 // concatenation methods
 
     function concatenateBlock(blockElement, deepness) {
         expect(Syntax.BlockStatement, blockElement);
-        var result = [{o: deepness, v: '{'}];
+        var result = [indent(deepness) + '{'];
         result = result.concat(concatenateStatements(blockElement.statements, deepness + 1));
-        result.push({o: deepness, v: '}'});
+        result.push(indent(deepness) + '}');
         return result;
     }
 
     function concatenateStatement(statement, deepness) {
-        return {o: deepness, v: statement.type};
+        if (statement.type === Syntax.VariableStatement) {
+            return concatenateVariableStatement(statement, deepness);
+        }
+
+        return indent(deepness) + statement.type;
     }
 
     function concatenateStatements(statements, deepness) {
         var result = [];
         for (var i = 0; i < statements.length; i++) {
             result.push(concatenateStatement(statements[i], deepness));
+        }
+
+        return result;
+    }
+
+    function concatenateVariableDeclaration(declaration) {
+        expect(Syntax.VariableDeclaration, declaration);
+        return declaration.id + concatenateVariableInitializer(declaration.initializer);
+    }
+
+    function concatenateVariableInitializer(initializer) {
+        if (initializer.type === Syntax.Empty) {
+            return '';
+        }
+
+        return ' = "TODO"';
+    }
+
+    function concatenateVariableStatement(variableStatement, deepness) {
+        expect(Syntax.VariableStatement, variableStatement);
+        var declarations = variableStatement.list;
+        var result = 'var ';
+        for (var i = 0; i < declarations.length; i++) {
+            result += concatenateVariableDeclaration(declarations[i]);
+            result += i + 1 == declarations.length ? ';' : ', ';
         }
 
         return result;
