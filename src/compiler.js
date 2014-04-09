@@ -27,6 +27,24 @@
 
 // concatenation methods
 
+    function concatenateArithmeticExpression(expression) {
+        if (expression.type === Syntax.ComparisonExpression) {
+            var multiplicative = expression.operator === '*'
+                || expression.operator === '/' || expression.operator === '%';
+
+            var func = multiplicative
+                ? concatenateUnaryExpression
+                : concatenateArithmeticExpression;
+
+            var result = func(expression.left);
+            result += ' ' + expression.operator + ' ';
+            result += concatenateArithmeticExpression(expression.right);
+            return result;
+        }
+
+        return concatenateUnaryExpression(expression);
+    }
+
     function concatenateAssignmentExpression(expression) {
         if (expression.type === Syntax.AssignmentExpression) {
             var result = expression.left + ' ' + expression.operator + ' ';
@@ -37,12 +55,45 @@
         return concatenateConditionalExpression(expression);
     }
 
+    function concatenateBitwiseExpression(expression) {
+        if (expression.type === Syntax.BitwiseExpression) {
+            var func = expression.operator === '&'
+                ? concatenateComparisonExpression
+                : concatenateBitwiseExpression;
+
+            var result = func(expression.left);
+            result += ' ' + expression.operator + ' ';
+            result += concatenateBitwiseExpression(expression.right);
+
+            return result;
+        }
+        return concatenateComparisonExpression(expression);
+    }
+
     function concatenateBlock(blockElement, deepness) {
         expect(Syntax.BlockStatement, blockElement);
         var result = [indent(deepness) + '{'];
         result = result.concat(concatenateStatements(blockElement.statements, deepness + 1));
         result.push(indent(deepness) + '}');
         return result;
+    }
+
+    function concatenateComparisonExpression(expression) {
+        if (expression.type === Syntax.ComparisonExpression) {
+            var inequality = expression.operator === '<' || expression.operator === '>'
+                || expression.operator === '<=' || expression.operator === '>=';
+
+            var func = inequality
+                ? concatenateArithmeticExpression
+                : concatenateComparisonExpression;
+
+            var result = func(expression.left);
+            result += ' ' + expression.operator + ' ';
+            result += concatenateComparisonExpression(expression.right);
+            return result;
+        }
+
+        return concatenateArithmeticExpression(expression);
     }
 
     function concatenateConditionalExpression(expression) {
@@ -59,7 +110,18 @@
     }
 
     function concatenateLogicalExpression(expression) {
-        return 'TODO';
+        if (expression.type === Syntax.LogicalExpression) {
+            var func = expression.operator === '&&'
+                ? concatenateBitwiseExpression
+                : concatenateLogicalExpression;
+
+            var result = func(expression.left);
+            result += ' ' + expression.operator + ' ';
+            result += concatenateLogicalExpression(expression.right);
+            return result;
+        }
+
+        return concatenateBitwiseExpression(expression);
     }
 
     function concatenateStatement(statement, deepness) {
@@ -77,6 +139,10 @@
         }
 
         return result;
+    }
+
+    function concatenateUnaryExpression(expression) {
+        return 'TODO';
     }
 
     function concatenateVariableDeclaration(declaration) {

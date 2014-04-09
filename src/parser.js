@@ -352,7 +352,7 @@
         tokenizer.advance();
 
         return {
-            type: Syntax.LogicalExpression,
+            type: Syntax.ComparisonExpression,
             operator: op.value,
             left: expression,
             right: parseEqualityExpression()
@@ -714,7 +714,7 @@
         tokenizer.advance();
 
         return {
-            type: Syntax.LogicalExpression,
+            type: Syntax.ComparisonExpression,
             operator: op.value,
             left: expression,
             right: parseRelationalExpression()
@@ -732,7 +732,7 @@
         tokenizer.advance();
 
         return {
-            type: Syntax.ShiftExpression,
+            type: Syntax.ArithmeticExpression,
             operator: op.value,
             left: expression,
             right: parseShiftExpression()
