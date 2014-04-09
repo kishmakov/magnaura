@@ -244,7 +244,7 @@
         matchToken(Token.Operator, ':');
 
         return {
-            type: Syntax.LogicalExpression,
+            type: Syntax.ConditionalExpression,
             test: expression,
             consequent: consequent,
             alternate: parseAssignmentExpression()
@@ -732,7 +732,7 @@
         tokenizer.advance();
 
         return {
-            type: Syntax.LogicalExpression,
+            type: Syntax.ShiftExpression,
             operator: op.value,
             left: expression,
             right: parseShiftExpression()

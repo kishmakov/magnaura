@@ -27,12 +27,39 @@
 
 // concatenation methods
 
+    function concatenateAssignmentExpression(expression) {
+        if (expression.type === Syntax.AssignmentExpression) {
+            var result = expression.left + ' ' + expression.operator + ' ';
+            result += concatenateAssignmentExpression(expression.right);
+            return result;
+        }
+
+        return concatenateConditionalExpression(expression);
+    }
+
     function concatenateBlock(blockElement, deepness) {
         expect(Syntax.BlockStatement, blockElement);
         var result = [indent(deepness) + '{'];
         result = result.concat(concatenateStatements(blockElement.statements, deepness + 1));
         result.push(indent(deepness) + '}');
         return result;
+    }
+
+    function concatenateConditionalExpression(expression) {
+        if (expression.type === Syntax.ConditionalExpression) {
+            var result = concatenateLogicalExpression(expression.test);
+            result += ' ? ';
+            result += concatenateAssignmentExpression(expression.consequent);
+            result += ' : ';
+            result += concatenateAssignmentExpression(expression.alternate);
+            return result;
+        }
+
+        return concatenateLogicalExpression(expression);
+    }
+
+    function concatenateLogicalExpression(expression) {
+        return 'TODO';
     }
 
     function concatenateStatement(statement, deepness) {
@@ -62,13 +89,13 @@
             return '';
         }
 
-        return ' = "TODO"';
+        return ' = ' + concatenateAssignmentExpression(initializer);
     }
 
     function concatenateVariableStatement(variableStatement, deepness) {
         expect(Syntax.VariableStatement, variableStatement);
         var declarations = variableStatement.list;
-        var result = 'var ';
+        var result = indent(deepness) + 'var ';
         for (var i = 0; i < declarations.length; i++) {
             result += concatenateVariableDeclaration(declarations[i]);
             result += i + 1 == declarations.length ? ';' : ', ';
