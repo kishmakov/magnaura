@@ -28,7 +28,12 @@
 // concatenation methods
 
     function concatenateArguments(arguments) {
-        return ['1', '2', '3']; // TODO
+        var result = [];
+        for (var i = 0; i < arguments.length; i++) {
+            result.push(concatenateAssignmentExpression(arguments[i]));
+        }
+
+        return result;
     }
 
     function concatenateArithmeticExpression(expression) {
@@ -47,6 +52,10 @@
         }
 
         return concatenateUnaryExpression(expression);
+    }
+
+    function concatenateArrayInitializer(expression) {
+        return 'ArrayInitializer'; // TODO
     }
 
     function concatenateAssignmentExpression(expression) {
@@ -85,9 +94,12 @@
     function concatenateCallExpression(expression) {
 
         if (expression.type === Syntax.MemberExpression) {
-            var object = concatenateCallExpression(expression.object);
-            var property = concatenateExpression(expression.property);
-            return object +'[' + property + ']';
+            var result = concatenateCallExpression(expression.object);
+            result += expression.property.type === Syntax.Identifier
+                ? '.' + expression.property.name
+                : '[' + concatenateExpression(expression.property) + ']';
+
+            return result;
         }
 
         if (expression.type === Syntax.CallExpression) {
@@ -136,7 +148,12 @@
         return concatenateLogicalExpression(expression);
     }
 
+    function concatenateFunctionExpression(expression) {
+        return 'FunctionExpression'; // TODO
+    }
+
     function concatenateExpression(expression) {
+        expect(expression, Syntax.Expression);
         return '239'; // TODO
     }
 
@@ -159,13 +176,32 @@
         return concatenateBitwiseExpression(expression);
     }
 
+    function concatenateObjectInitializer(expression) {
+        return 'ObjectInitializer'; // TODO
+    }
+
     function concatenatePrimaryExpression(expression) {
-        // TODO: fill it
         if (expression.type === Syntax.Identifier) {
             return expression.name;
         }
 
-        return '239';
+        if (expression.type === Syntax.Literal) {
+            return expression.value;
+        }
+
+        if (expression.type === Syntax.FunctionExpression) {
+            return concatenateFunctionExpression(expression);
+        }
+
+        if (expression.type === Syntax.ObjectExpression) {
+            return concatenateObjectInitializer(expression);
+        }
+
+        if (expression.type === Syntax.ArrayExpression) {
+            return concatenateArrayInitializer(expression);
+        }
+
+        return '(' + concatenateExpression(expression) + ')';
     }
 
     function concatenateStatement(statement, deepness) {
