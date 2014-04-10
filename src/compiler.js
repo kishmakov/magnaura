@@ -27,6 +27,10 @@
 
 // concatenation methods
 
+    function concatenateArguments(arguments) {
+        return ['1', '2', '3']; // TODO
+    }
+
     function concatenateArithmeticExpression(expression) {
         if (expression.type === Syntax.ComparisonExpression) {
             var multiplicative = expression.operator === '*'
@@ -78,6 +82,29 @@
         return result;
     }
 
+    function concatenateCallExpression(expression) {
+
+        if (expression.type === Syntax.MemberExpression) {
+            var object = concatenateCallExpression(expression.object);
+            var property = concatenateExpression(expression.property);
+            return object +'[' + property + ']';
+        }
+
+        if (expression.type === Syntax.CallExpression) {
+            var result = concatenateCallExpression(expression.callee);
+            var arguments = concatenateArguments(expression.arguments);
+
+            for (var i = 0; i < arguments.length; i++) {
+                result += i == 0 ? '(' : ', ';
+                result += arguments[i];
+            }
+
+            return result + ')';
+        }
+
+        return concatenatePrimaryExpression(expression);
+    }
+
     function concatenateComparisonExpression(expression) {
         if (expression.type === Syntax.ComparisonExpression) {
             var inequality = expression.operator === '<' || expression.operator === '>'
@@ -109,6 +136,14 @@
         return concatenateLogicalExpression(expression);
     }
 
+    function concatenateExpression(expression) {
+        return '239'; // TODO
+    }
+
+    function concatenateLeftSide(expression) {
+        return concatenateCallExpression(expression);
+    }
+
     function concatenateLogicalExpression(expression) {
         if (expression.type === Syntax.LogicalExpression) {
             var func = expression.operator === '&&'
@@ -122,6 +157,15 @@
         }
 
         return concatenateBitwiseExpression(expression);
+    }
+
+    function concatenatePrimaryExpression(expression) {
+        // TODO: fill it
+        if (expression.type === Syntax.Identifier) {
+            return expression.name;
+        }
+
+        return '239';
     }
 
     function concatenateStatement(statement, deepness) {
@@ -142,7 +186,23 @@
     }
 
     function concatenateUnaryExpression(expression) {
-        return 'TODO';
+        var argument;
+        if (expression.type === Syntax.UpdateExpression) {
+            if (expression.prefix) {
+                argument = concatenateUnaryExpression(expression.argument);
+                return expression.operator + argument;
+            } else {
+                argument = concatenateLeftSide(expression.argument);
+                return argument + expression.operator;
+            }
+        }
+
+        if (expression.type == Syntax.UnaryExpression) {
+            argument = concatenateUnaryExpression(expression.argument);
+            return expression.operator + argument;
+        }
+
+        return concatenateLeftSide(expression);
     }
 
     function concatenateVariableDeclaration(declaration) {
@@ -177,7 +237,7 @@
 
         compiled_public['Name'] = parsed_public['Name'];
         compiled_public['Arguments'] = parsed_public['Arguments'];
-        compiled_public['Body'] = concatenateBlock(parsed_public['Body'], 0)
+        compiled_public['Body'] = concatenateBlock(parsed_public['Body'], 0);
 
         return compiled_public;
     }
