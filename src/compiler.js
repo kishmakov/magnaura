@@ -25,6 +25,12 @@
         return result;
     }
 
+    function GetterFunctional(memberName) {
+        return function (object) {
+            return object[memberName];
+        };
+    }
+
 // concatenation methods
 
     function concatenateArguments(arguments) {
@@ -154,7 +160,33 @@
 
     function concatenateExpression(expression) {
         expect(expression, Syntax.Expression);
-        return '239'; // TODO
+        var result = '';
+        var expressions = expression.expressions;
+        for (var i = 0; i < expressions.length; i++) {
+            result += i == 0 ? '' : ', ';
+            result += concatenateAssignmentExpression(expressions[i]);
+        }
+        return result;
+    }
+
+    function concatenateForInitializer(expression) {
+        return 'ForInitializer'; // TODO
+    }
+
+    function concatenateForStatement(expression, deepness) {
+        expect(Syntax.ForStatement, expression);
+        var result = indent(deepness) + 'for (';
+
+        result += concatenateForInitializer(expression.init);
+        result += '; ';
+        result += concatenateOptionalExpression(expression.condition);
+        result += '; ';
+        result += concatenateOptionalExpression(expression.final);
+        result += ')\n';
+
+        result += concatenateStatement(expression.body, deepness + 1);
+
+        return result;
     }
 
     function concatenateLeftSide(expression) {
@@ -180,33 +212,39 @@
         return 'ObjectInitializer'; // TODO
     }
 
+    function concatenateOptionalExpression(expression) {
+        return 'OptionalExpression'; // TODO
+    }
+
     function concatenatePrimaryExpression(expression) {
-        if (expression.type === Syntax.Identifier) {
-            return expression.name;
-        }
+        var processors = {
+            Identifier: GetterFunctional('name'),
+            Literal: GetterFunctional('value'),
+            FunctionExpression: concatenateFunctionExpression,
+            ObjectExpression: concatenateObjectInitializer,
+            ArrayExpression: concatenateArrayInitializer
+        };
 
-        if (expression.type === Syntax.Literal) {
-            return expression.value;
-        }
-
-        if (expression.type === Syntax.FunctionExpression) {
-            return concatenateFunctionExpression(expression);
-        }
-
-        if (expression.type === Syntax.ObjectExpression) {
-            return concatenateObjectInitializer(expression);
-        }
-
-        if (expression.type === Syntax.ArrayExpression) {
-            return concatenateArrayInitializer(expression);
+        for (var type in processors) {
+            if (expression.type === Syntax[type]) {
+                return processors[type](expression);
+            }
         }
 
         return '(' + concatenateExpression(expression) + ')';
     }
 
     function concatenateStatement(statement, deepness) {
-        if (statement.type === Syntax.VariableStatement) {
-            return concatenateVariableStatement(statement, deepness);
+
+        var processors = {
+            VariableStatement: concatenateVariableStatement,
+            ForStatement: concatenateForStatement
+        }; // TODO add extra
+
+        for (var type in processors) {
+            if (statement.type === Syntax[type]) {
+                return processors[type](statement, deepness);
+            }
         }
 
         return indent(deepness) + statement.type;
