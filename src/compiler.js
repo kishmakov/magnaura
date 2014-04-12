@@ -27,202 +27,236 @@
 
     function GetterFunctional(memberName) {
         return function (object) {
-            return object[memberName];
+            return [object[memberName]];
         };
+    }
+
+    function toString(result) {
+        if (!(result instanceof Array)) {
+            throw {
+                message: 'unexpected object provided'
+            };
+        }
+
+        if (result.length != 1) {
+            throw {
+                message: 'array of size ' + result.length + ' provided instead of one-element array'
+            };
+        }
+
+        return result[0];
+    }
+
+    function concatenate(list, tail, separator) {
+        if (list.length == 0) {
+            return list.concat(tail);
+        }
+
+        if (arguments.length < 3) {
+            separator = '';
+        }
+
+        list[list.length - 1] += separator + tail[0];
+        return tail.length > 1 ? list.concat(tail.slice(1)) : list;
+
     }
 
 // concatenation methods
 
-    function concatenateArguments(arguments) {
+    function stringifyArguments(arguments) {
         var result = [];
         for (var i = 0; i < arguments.length; i++) {
-            result.push(concatenateAssignmentExpression(arguments[i]));
+            result.push(stringifyAssignmentExpression(arguments[i]));
         }
 
         return result;
     }
 
-    function concatenateArithmeticExpression(expression) {
-        if (expression.type === Syntax.ComparisonExpression) {
+    function stringifyArithmeticExpression(expression) {
+        if (expression.type === Syntax.ArithmeticExpression) {
             var multiplicative = expression.operator === '*'
                 || expression.operator === '/' || expression.operator === '%';
 
             var func = multiplicative
-                ? concatenateUnaryExpression
-                : concatenateArithmeticExpression;
+                ? stringifyUnaryExpression
+                : stringifyArithmeticExpression;
 
             var result = func(expression.left);
-            result += ' ' + expression.operator + ' ';
-            result += concatenateArithmeticExpression(expression.right);
+            result = concatenate(result, [expression.operator], ' ');
+            result = concatenate(result, stringifyArithmeticExpression(expression.right), ' ');
             return result;
         }
 
-        return concatenateUnaryExpression(expression);
+        return stringifyUnaryExpression(expression);
     }
 
-    function concatenateArrayInitializer(expression) {
+    function stringifyArrayInitializer(expression) {
         return 'ArrayInitializer'; // TODO
     }
 
-    function concatenateAssignmentExpression(expression) {
+    function stringifyAssignmentExpression(expression) {
         if (expression.type === Syntax.AssignmentExpression) {
-            var result = expression.left + ' ' + expression.operator + ' ';
-            result += concatenateAssignmentExpression(expression.right);
+            var result = [expression.left + ' ' + expression.operator + ' '];
+            result = concatenate(result, stringifyAssignmentExpression(expression.right))
             return result;
         }
 
-        return concatenateConditionalExpression(expression);
+        return stringifyConditionalExpression(expression);
     }
 
-    function concatenateBitwiseExpression(expression) {
+    function stringifyBitwiseExpression(expression) {
         if (expression.type === Syntax.BitwiseExpression) {
             var func = expression.operator === '&'
-                ? concatenateComparisonExpression
-                : concatenateBitwiseExpression;
+                ? stringifyComparisonExpression
+                : stringifyBitwiseExpression;
 
             var result = func(expression.left);
-            result += ' ' + expression.operator + ' ';
-            result += concatenateBitwiseExpression(expression.right);
-
+            result = concatenate(result, [expression.operator], ' ');
+            result = concatenate(result, stringifyBitwiseExpression(expression.right), ' ');
             return result;
         }
-        return concatenateComparisonExpression(expression);
+        return stringifyComparisonExpression(expression);
     }
 
-    function concatenateBlock(blockElement, deepness) {
+    function stringifyBlock(blockElement, deepness) {
         expect(Syntax.BlockStatement, blockElement);
         var result = [indent(deepness) + '{'];
-        result = result.concat(concatenateStatements(blockElement.statements, deepness + 1));
+        result = result.concat(stringifyStatements(blockElement.statements, deepness + 1));
         result.push(indent(deepness) + '}');
         return result;
     }
 
-    function concatenateCallExpression(expression) {
+    function stringifyCallExpression(expression) {
+        var result;
 
         if (expression.type === Syntax.MemberExpression) {
-            var result = concatenateCallExpression(expression.object);
-            result += expression.property.type === Syntax.Identifier
-                ? '.' + expression.property.name
-                : '[' + concatenateExpression(expression.property) + ']';
+            result = stringifyCallExpression(expression.object);
+            if (expression.property.type === Syntax.Identifier) {
+                result = concatenate(result, [expression.property.name], '.');
+            } else {
+                var se = stringifyExpression(expression.property);
+                se[se.length - 1] += ']';
+                result = concatenate(result, se, '[');
+            }
 
             return result;
         }
 
         if (expression.type === Syntax.CallExpression) {
-            var result = concatenateCallExpression(expression.callee);
-            var arguments = concatenateArguments(expression.arguments);
-
-            for (var i = 0; i < arguments.length; i++) {
-                result += i == 0 ? '(' : ', ';
-                result += arguments[i];
-            }
-
-            return result + ')';
+            result = stringifyCallExpression(expression.callee);
+            result = concatenate(result, stringifyArguments(expression.arguments), '(');
+            result[result.length - 1] += ')';
+            return result;
         }
 
-        return concatenatePrimaryExpression(expression);
+        return stringifyPrimaryExpression(expression);
     }
 
-    function concatenateComparisonExpression(expression) {
+    function stringifyComparisonExpression(expression) {
         if (expression.type === Syntax.ComparisonExpression) {
             var inequality = expression.operator === '<' || expression.operator === '>'
                 || expression.operator === '<=' || expression.operator === '>=';
 
             var func = inequality
-                ? concatenateArithmeticExpression
-                : concatenateComparisonExpression;
+                ? stringifyArithmeticExpression
+                : stringifyComparisonExpression;
 
             var result = func(expression.left);
-            result += ' ' + expression.operator + ' ';
-            result += concatenateComparisonExpression(expression.right);
+            result = concatenate(result, [expression.operator], ' ');
+            result = concatenate(result, stringifyComparisonExpression(expression.right), ' ');
             return result;
         }
 
-        return concatenateArithmeticExpression(expression);
+        return stringifyArithmeticExpression(expression);
     }
 
-    function concatenateConditionalExpression(expression) {
+    function stringifyConditionalExpression(expression) {
         if (expression.type === Syntax.ConditionalExpression) {
-            var result = concatenateLogicalExpression(expression.test);
-            result += ' ? ';
-            result += concatenateAssignmentExpression(expression.consequent);
-            result += ' : ';
-            result += concatenateAssignmentExpression(expression.alternate);
+            var result = stringifyLogicalExpression(expression.test);
+            result = concatenate(result, stringifyAssignmentExpression(expression.consequent), ' ? ');
+            result = concatenate(result, stringifyAssignmentExpression(expression.alternate), ' : ');
             return result;
         }
 
-        return concatenateLogicalExpression(expression);
+        return stringifyLogicalExpression(expression);
     }
 
-    function concatenateFunctionExpression(expression) {
+    function stringifyFunctionExpression(expression) {
         return 'FunctionExpression'; // TODO
     }
 
-    function concatenateExpression(expression) {
-        expect(expression, Syntax.Expression);
-        var result = '';
+    function stringifyExpression(expression) {
+        expect(Syntax.Expression, expression);
+        var result = [];
         var expressions = expression.expressions;
         for (var i = 0; i < expressions.length; i++) {
-            result += i == 0 ? '' : ', ';
-            result += concatenateAssignmentExpression(expressions[i]);
+            result = concatenate(result, stringifyAssignmentExpression(expressions[i]), ', ');
         }
         return result;
     }
 
-    function concatenateForInitializer(expression) {
-        return 'ForInitializer'; // TODO
+    function stringifyForInitializer(expression) {
+        if (expression.type === Syntax.VariableDefinition) {
+            return stringifyVariableDefinition(expression);
+        }
+        return ['ForInitializer']; // TODO
     }
 
-    function concatenateForStatement(expression, deepness) {
+    function stringifyForStatement(expression, deepness) {
         expect(Syntax.ForStatement, expression);
-        var result = indent(deepness) + 'for (';
+        var first = indent(deepness) + 'for (';
 
-        result += concatenateForInitializer(expression.init);
-        result += '; ';
-        result += concatenateOptionalExpression(expression.condition);
-        result += '; ';
-        result += concatenateOptionalExpression(expression.final);
-        result += ')\n';
+        first += toString(stringifyForInitializer(expression.init));
+        first += '; ';
+        first += toString(stringifyOptionalExpression(expression.condition));
+        first += '; ';
+        first += toString(stringifyOptionalExpression(expression.final));
+        first += ')';
 
-        result += concatenateStatement(expression.body, deepness + 1);
+        var result = [first];
+        result = result.concat(stringifyStatement(expression.body, deepness + 1));
 
         return result;
     }
 
-    function concatenateLeftSide(expression) {
-        return concatenateCallExpression(expression);
+    function stringifyLeftSide(expression) {
+        return stringifyCallExpression(expression);
     }
 
-    function concatenateLogicalExpression(expression) {
+    function stringifyLogicalExpression(expression) {
         if (expression.type === Syntax.LogicalExpression) {
             var func = expression.operator === '&&'
-                ? concatenateBitwiseExpression
-                : concatenateLogicalExpression;
+                ? stringifyBitwiseExpression
+                : stringifyLogicalExpression;
 
             var result = func(expression.left);
-            result += ' ' + expression.operator + ' ';
-            result += concatenateLogicalExpression(expression.right);
+            result = concatenate(result, [expression.operator], ' ');
+            result = concatenate(result, stringifyLogicalExpression(expression.right), ' ');
             return result;
         }
 
-        return concatenateBitwiseExpression(expression);
+        return stringifyBitwiseExpression(expression);
     }
 
-    function concatenateObjectInitializer(expression) {
+    function stringifyObjectInitializer(expression) {
         return 'ObjectInitializer'; // TODO
     }
 
-    function concatenateOptionalExpression(expression) {
-        return 'OptionalExpression'; // TODO
+    function stringifyOptionalExpression(expression) {
+        if (expression.type === Syntax.Empty) {
+            return [''];
+        }
+
+        return stringifyExpression(expression);
     }
 
-    function concatenatePrimaryExpression(expression) {
+    function stringifyPrimaryExpression(expression) {
         var processors = {
             Identifier: GetterFunctional('name'),
             Literal: GetterFunctional('value'),
-            FunctionExpression: concatenateFunctionExpression,
-            ObjectExpression: concatenateObjectInitializer,
-            ArrayExpression: concatenateArrayInitializer
+            FunctionExpression: stringifyFunctionExpression,
+            ObjectExpression: stringifyObjectInitializer,
+            ArrayExpression: stringifyArrayInitializer
         };
 
         for (var type in processors) {
@@ -231,14 +265,16 @@
             }
         }
 
-        return '(' + concatenateExpression(expression) + ')';
+        var result = stringifyExpression(expression);
+        result[0] = '(' + result[0];
+        result[result.length - 1] += ')';
+        return result;
     }
 
-    function concatenateStatement(statement, deepness) {
-
+    function stringifyStatement(statement, deepness) {
         var processors = {
-            VariableStatement: concatenateVariableStatement,
-            ForStatement: concatenateForStatement
+            VariableStatement: stringifyVariableStatement,
+            ForStatement: stringifyForStatement
         }; // TODO add extra
 
         for (var type in processors) {
@@ -247,83 +283,108 @@
             }
         }
 
-        return indent(deepness) + statement.type;
+        return [indent(deepness) + statement.type];
     }
 
-    function concatenateStatements(statements, deepness) {
+    function stringifyStatements(statements, deepness) {
         var result = [];
         for (var i = 0; i < statements.length; i++) {
-            result.push(concatenateStatement(statements[i], deepness));
+            result = result.concat(stringifyStatement(statements[i], deepness));
         }
 
         return result;
     }
 
-    function concatenateUnaryExpression(expression) {
-        var argument;
+    function stringifyUnaryExpression(expression) {
+        var result;
         if (expression.type === Syntax.UpdateExpression) {
             if (expression.prefix) {
-                argument = concatenateUnaryExpression(expression.argument);
-                return expression.operator + argument;
+                result = [expression.operator];
+                resutl = concatenate(result, stringifyUnaryExpression(expression.argument));
+                return result;
             } else {
-                argument = concatenateLeftSide(expression.argument);
-                return argument + expression.operator;
+                result = stringifyLeftSide(expression.argument);
+                result = concatenate(result, [expression.operator]);
+                return result;
             }
         }
 
         if (expression.type == Syntax.UnaryExpression) {
-            argument = concatenateUnaryExpression(expression.argument);
-            return expression.operator + argument;
+            result = [expression.operator];
+            result = concatenate(result, stringifyUnaryExpression(expression.argument))
+            return  result;
         }
 
-        return concatenateLeftSide(expression);
+        return stringifyLeftSide(expression);
     }
 
-    function concatenateVariableDeclaration(declaration) {
+    function stringifyVariableDeclaration(declaration) {
         expect(Syntax.VariableDeclaration, declaration);
-        return declaration.id + concatenateVariableInitializer(declaration.initializer);
+        var result = [declaration.id];
+        result = concatenate(result, stringifyVariableInitializer(declaration.initializer));
+        return result;
     }
 
-    function concatenateVariableInitializer(initializer) {
-        if (initializer.type === Syntax.Empty) {
-            return '';
-        }
+    function stringifyVariableDeclarationList(list) {
+        var result = [];
 
-        return ' = ' + concatenateAssignmentExpression(initializer);
-    }
-
-    function concatenateVariableStatement(variableStatement, deepness) {
-        expect(Syntax.VariableStatement, variableStatement);
-        var declarations = variableStatement.list;
-        var result = indent(deepness) + 'var ';
-        for (var i = 0; i < declarations.length; i++) {
-            result += concatenateVariableDeclaration(declarations[i]);
-            result += i + 1 == declarations.length ? ';' : ', ';
+        for (var i = 0; i < list.length; i++) {
+            result = concatenate(result, stringifyVariableDeclaration(list[i]), ', ');
         }
 
         return result;
     }
 
-// compilation
-
-    function compile_public(parsed_public) {
-        var compiled_public = {};
-
-        compiled_public['Name'] = parsed_public['Name'];
-        compiled_public['Arguments'] = parsed_public['Arguments'];
-        compiled_public['Body'] = concatenateBlock(parsed_public['Body'], 0);
-
-        return compiled_public;
+    function stringifyVariableDefinition(definition) {
+        expect(Syntax.VariableDefinition, definition);
+        var list = stringifyVariableDeclarationList(definition.list);
+        list[0] = 'var ' + list[0];
+        return list;
     }
 
-    exports.compile = function (parsed_script) {
-        var compiled_script = { public: [], private: [], fusion: [] };
-
-        for (var i = 0; i < parsed_script['public'].length; i++) {
-            compiled_script['public'].push(compile_public(parsed_script['public'][i]));
+    function stringifyVariableInitializer(initializer) {
+        if (initializer.type === Syntax.Empty) {
+            return [''];
         }
 
-        return compiled_script;
+        var result = [' = '];
+        result = concatenate(result, stringifyAssignmentExpression(initializer));
+        return result;
+    }
+
+    function stringifyVariableStatement(variableStatement, deepness) {
+        expect(Syntax.VariableStatement, variableStatement);
+        var declarations = variableStatement.list;
+        var result = indent(deepness) + 'var ';
+        for (var i = 0; i < declarations.length; i++) {
+            result += stringifyVariableDeclaration(declarations[i]);
+            result += i + 1 == declarations.length ? ';' : ', ';
+        }
+
+        return [result];
+    }
+
+// compilation
+
+    function compilePublic(parsed) {
+        var compiled = {};
+
+        compiled['Name'] = parsed['Name'];
+        compiled['Arguments'] = parsed['Arguments'];
+        compiled['Body'] = stringifyBlock(parsed['Body'], 0);
+
+        return compiled;
+    }
+
+    exports.compile = function (parsed) {
+        var compiled = { public: [], private: [], fusion: [] };
+
+        for (var i = 0; i < parsed['public'].length; i++) {
+            compiled['public'].push(compilePublic(parsed['public'][i]));
+        }
+
+
+        return compiled;
     }
 
 }(typeof exports === 'undefined' ? (compiler = {}) : exports));

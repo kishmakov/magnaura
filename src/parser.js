@@ -377,8 +377,7 @@
         }
 
         if (sameTokens(tokenizer.getToken(), Token.JSKeyword, 'var')) {
-            tokenizer.advance();
-            return parseVariableDeclarationList();
+            return parseVariableDefinition();
         }
 
         return parseExpression();
