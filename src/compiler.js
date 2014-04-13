@@ -97,7 +97,7 @@
     function stringifyAssignmentExpression(expression) {
         if (expression.type === Syntax.AssignmentExpression) {
             var result = [expression.left + ' ' + expression.operator + ' '];
-            result = concatenate(result, stringifyAssignmentExpression(expression.right))
+            result = concatenate(result, stringifyAssignmentExpression(expression.right));
             return result;
         }
 
@@ -118,7 +118,7 @@
         return stringifyComparisonExpression(expression);
     }
 
-    function stringifyBlock(blockElement, deepness) {
+    function stringifyBlockStatement(blockElement, deepness) {
         expect(Syntax.BlockStatement, blockElement);
         var result = [indent(deepness) + '{'];
         result = result.concat(stringifyStatements(blockElement.statements, deepness + 1));
@@ -219,6 +219,18 @@
         return result;
     }
 
+    function stringifyIfStatement(statement, deepness) {
+        expect(Syntax.IfStatement, statement);
+        var result = [indent(deepness) + 'if (' + toString(stringifyExpression(statement.test)) + ')'];
+        result = result.concat(stringifyStatement(statement.consequent, deepness + 1));
+        if (statement.alternate !== null) {
+            result.push(indent(deepness) + 'else');
+            result = result.concat(stringifyStatement(statement.alternate, deepness + 1));
+        }
+
+        return result;
+    }
+
     function stringifyLeftSide(expression) {
         return stringifyCallExpression(expression);
     }
@@ -273,8 +285,10 @@
 
     function stringifyStatement(statement, deepness) {
         var processors = {
-            VariableStatement: stringifyVariableStatement,
-            ForStatement: stringifyForStatement
+            BlockStatement: stringifyBlockStatement,
+            ForStatement: stringifyForStatement,
+            IfStatement: stringifyIfStatement,
+            VariableStatement: stringifyVariableStatement
         }; // TODO add extra
 
         for (var type in processors) {
@@ -371,7 +385,7 @@
 
         compiled['Name'] = parsed['Name'];
         compiled['Arguments'] = parsed['Arguments'];
-        compiled['Body'] = stringifyBlock(parsed['Body'], 0);
+        compiled['Body'] = stringifyBlockStatement(parsed['Body'], 0);
 
         return compiled;
     }

@@ -252,13 +252,14 @@
     }
 
     function parseCallExpression() {
+        var property;
         var expression = parsePrimaryExpression();
 
         while (!tokenizer.isEOTokens()) {
             if (nextIsOperator('.')) {
                 tokenizer.advance();
                 var identifier = matchToken(Token.Identifier);
-                var property = {
+                property = {
                     type: Syntax.Identifier,
                     name: identifier.value
                 };
@@ -269,8 +270,8 @@
                 };
             } else if (nextIsSeparator('[')) {
                 tokenizer.advance();
-                var property = parseExpression();
-                expresssion = {
+                property = parseExpression();
+                expression = {
                     type: Syntax.MemberExpression,
                     object: expression,
                     property: property
@@ -426,7 +427,7 @@
         var test = parseExpression();
         matchToken(Token.Separator, ')');
         var consequent = parseStatement();
-        var alternate;
+        var alternate = null;
         if (sameTokens(tokenizer.getToken(), Token.JSKeyword, 'else')) {
             tokenizer.advance();
             alternate = parseStatement();
@@ -434,7 +435,7 @@
 
         return {
             type: Syntax.IfStatement,
-            test: test.expressions,
+            test: test,
             consequent: consequent,
             alternate: alternate
         };
