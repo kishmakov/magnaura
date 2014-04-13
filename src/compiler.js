@@ -96,7 +96,8 @@
 
     function stringifyAssignmentExpression(expression) {
         if (expression.type === Syntax.AssignmentExpression) {
-            var result = [expression.left + ' ' + expression.operator + ' '];
+            var left = toString(stringifyConditionalExpression(expression.left))
+            var result = [left + ' ' + expression.operator + ' '];
             result = concatenate(result, stringifyAssignmentExpression(expression.right));
             return result;
         }
@@ -195,6 +196,12 @@
         return result;
     }
 
+    function stringifyExpressionStatement(statement, deepness) {
+        expect(Syntax.ExpressionStatement, statement);
+        var result = toString(stringifyExpression(statement.expression));
+        return [indent(deepness) + result + ';'];
+    }
+
     function stringifyForInitializer(expression) {
         if (expression.type === Syntax.VariableDefinition) {
             return stringifyVariableDefinition(expression);
@@ -286,6 +293,7 @@
     function stringifyStatement(statement, deepness) {
         var processors = {
             BlockStatement: stringifyBlockStatement,
+            ExpressionStatement: stringifyExpressionStatement,
             ForStatement: stringifyForStatement,
             IfStatement: stringifyIfStatement,
             VariableStatement: stringifyVariableStatement
