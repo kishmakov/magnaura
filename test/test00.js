@@ -1,12 +1,18 @@
 var fs = require('fs');
 
+var assembler = require('../src/assembler');
 var compiler = require('../src/compiler');
 var parser = require('../src/parser');
 var tokenizer = require('../src/tokenizer');
 
-exports['Sorter tokens.'] = function (test) {
-    var sorter_source = fs.readFileSync('./data/test00/sorter.ks').toString();
-    tokenizer.init(sorter_source);
+exports['Sorter processing.'] = function (test) {
+    var sorter_script = fs.readFileSync('./data/test00/sorter.ks').toString();
+    var parsed_script = parser.parse(sorter_script);
+    var compiled_script = compiler.compile(parsed_script);
+
+    // tokenizer
+
+    tokenizer.init(sorter_script);
 
     var tokensNumber = 0;
     while (!tokenizer.isEOTokens()) {
@@ -15,6 +21,21 @@ exports['Sorter tokens.'] = function (test) {
     }
 
     test.equal(tokensNumber, 85);
+
+    // parser
+
+    test.equal(parsed_script['public'].length, 1);
+
+    // compiler
+
+    fs.writeFileSync('sorter.json', JSON.stringify(compiled_script, null, 2));
+
+    // assembler
+
+    var assembled_object = assembler.assemble(compiled_script);
+
+    test.equal(assembled_object.sum(2, 3), 5);
+
     test.done();
 };
 
@@ -29,17 +50,6 @@ exports['Sequencer tokens.'] = function (test) {
     }
 
     test.equal(tokensNumber, 199);
-    test.done();
-};
-
-exports['Sorter parsing & compiling.'] = function (test) {
-    var sorter_script = fs.readFileSync('./data/test00/sorter.ks').toString();
-    var parsed_script = parser.parse(sorter_script);
-    var compiled_script = compiler.compile(parsed_script);
-
-    fs.writeFileSync('sorter.json', JSON.stringify(compiled_script, null, 2));
-
-    test.equal(parsed_script['public'].length, 1);
     test.done();
 };
 
