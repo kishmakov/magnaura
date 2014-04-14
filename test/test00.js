@@ -7,7 +7,7 @@ var tokenizer = require('../src/tokenizer');
 
 exports['Sorter processing.'] = function (test) {
     var sorter_script = fs.readFileSync('./data/test00/sorter.ks').toString();
-    var parsed_script = parser.parse(sorter_script);
+    var parsed_script = parser.parse(sorter_script, 'Sorter');
     var compiled_script = compiler.compile(parsed_script);
 
     // tokenizer
@@ -34,7 +34,9 @@ exports['Sorter processing.'] = function (test) {
 
     var assembled_object = assembler.assemble(compiled_script);
 
-    test.equal(assembled_object.sum(2, 3), 5);
+    var array = [9, 2, 3];
+    assembled_object.sort(array);
+    test.deepEqual(array, [2, 3, 9]);
 
     test.done();
 };
