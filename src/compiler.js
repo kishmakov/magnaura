@@ -64,9 +64,10 @@
 // concatenation methods
 
     function stringifyArguments(arguments) {
-        var result = [];
+        var result = [], temp;
         for (var i = 0; i < arguments.length; i++) {
-            result.push(stringifyAssignmentExpression(arguments[i]));
+            temp = stringifyAssignmentExpression(arguments[i]);
+            result = concatenate(result, temp, ', ');
         }
 
         return result;
@@ -388,7 +389,7 @@
 
 // compilation
 
-    function compilePublic(parsed) {
+    function compileFunction(parsed) {
         var compiled = {};
 
         compiled['Name'] = parsed['Name'];
@@ -400,11 +401,18 @@
 
     exports.compile = function (parsed) {
         var compiled = { public: [], private: [], fusion: [] };
+        compiled['Name'] = parsed['Name'];
 
-        for (var i = 0; i < parsed['public'].length; i++) {
-            compiled['public'].push(compilePublic(parsed['public'][i]));
+        var i, j, len;
+        var specifiers = ['public', 'private', 'fusion'];
+
+        for (j = 0; j < 3; j++) {
+            var functions = parsed[specifiers[j]];
+            for (i = 0, len = functions.length; i < len; i++) {
+                var destination = compiled[specifiers[j]];
+                destination.push(compileFunction(functions[i]))
+            }
         }
-
 
         return compiled;
     }

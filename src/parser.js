@@ -857,9 +857,11 @@
         return functionElements;
     }
 
-    exports.parse = function (source_string) {
+    exports.parse = function (source_string, name) {
         tokenizer.init(source_string);
-        return parseScript();
+        var result = parseScript();
+        result['Name'] = arguments.length > 1 ? name : '';
+        return result;
     }
 
 
