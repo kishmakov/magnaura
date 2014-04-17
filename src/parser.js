@@ -5,6 +5,7 @@
 
     var common = require('../src/common');
     var tokenizer = require('../src/tokenizer');
+    var tools = require('../src/tools');
 
 // proxy for other modules
 
@@ -819,8 +820,6 @@
         };
     }
 
-// external functions
-
     function parseFunctionElement() {
         var element = { Arguments: [] };
 
@@ -843,6 +842,8 @@
     }
 
     function parseScript() {
+        tokenizer.reset();
+
         var functionElements = {
             'public': [],
             'private': [],
@@ -857,10 +858,47 @@
         return functionElements;
     }
 
+// hash computation
+
+    function stringify(token) {
+        switch (token.type) {
+            case Token.AccessSpecifier:
+            case Token.BooleanLiteral:
+            case Token.Identifier:
+            case Token.JSKeyword:
+            case Token.KSKeyword:
+            case Token.NumericLiteral:
+            case Token.Operator:
+            case Token.Separator:
+            case Token.StringLiteral:
+                return token.value;
+            case Token.NullLiteral:
+                return 'null';
+        }
+
+        return ''; // Token.EOF
+    }
+
+    function computeHash() {
+        tokenizer.reset();
+
+        var prehash = '';
+
+        while (!tokenizer.isEOTokens()) {
+            prehash += stringify(tokenizer.getToken());
+            tokenizer.advance();
+        }
+
+        return tools.SHA256(prehash).substr(0, 24);
+    }
+
+// exported functions
+
     exports.parse = function (source_string, name) {
         tokenizer.init(source_string);
         var result = parseScript();
         result['Name'] = arguments.length > 1 ? name : '';
+        result['Hash'] = computeHash();
         return result;
     }
 

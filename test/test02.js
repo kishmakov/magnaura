@@ -24,6 +24,7 @@ exports['Sorter processing.'] = function (test) {
     var parsed_script = parser.parse(sorter_script, 'Sorter');
     test.equal(parsed_script['public'].length, 1);
     test.equal(parsed_script['private'].length, 1);
+    test.equal(parsed_script['Hash'], '67d5735655eb74ce2bf86a8b');
 
     // compiler
 

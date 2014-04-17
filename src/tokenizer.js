@@ -399,10 +399,8 @@
         }
     };
 
-    exports.retreat = function () {
-        if (tokenIndex > 0) {
-            tokenIndex--;
-        }
+    exports.reset = function () {
+        tokenIndex = 0;
     };
 
     exports.isEOTokens = function () {
