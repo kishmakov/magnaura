@@ -10,5 +10,5 @@ public sort(a) {
     for (var i = 0; i + 1 < n; i++)
         for (var j = i + 1; j < n; j++)
             if (a[i] > a[j]) 
-            	this.swap(a, i, j);            
+            	swap(a, i, j);
 }

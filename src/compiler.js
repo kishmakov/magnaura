@@ -6,6 +6,10 @@
 
     var Syntax = common.Syntax;
 
+// global variables
+
+    var methods;
+
 // stuff
 
     function expect(expectedType, element) {
@@ -279,13 +283,20 @@
             ArrayExpression: stringifyArrayInitializer
         };
 
+        var result;
+
         for (var type in processors) {
             if (expression.type === Syntax[type]) {
-                return processors[type](expression);
+                result = processors[type](expression);
+                if (result[0] in methods) {
+                    result[0] = 'this.' + result[0];
+                }
+
+                return result;
             }
         }
 
-        var result = stringifyExpression(expression);
+        result = stringifyExpression(expression);
         result[0] = '(' + result[0];
         result[result.length - 1] += ')';
         return result;
@@ -402,9 +413,19 @@
     exports.compile = function (parsed) {
         var compiled = { public: [], private: [], fusion: [] };
         compiled['Name'] = parsed['Name'];
+        compiled['Hash'] = parsed['Hash'];
 
         var i, j, len;
         var specifiers = ['public', 'private', 'fusion'];
+
+        methods = {};
+
+        for (j = 0; j < 3; j++) {
+            var functions = parsed[specifiers[j]];
+            for (i = 0, len = functions.length; i < len; i++) {
+                methods[functions[i]['Name']] = 0;
+            }
+        }
 
         for (j = 0; j < 3; j++) {
             var functions = parsed[specifiers[j]];

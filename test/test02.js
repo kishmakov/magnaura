@@ -17,14 +17,14 @@ exports['Sorter processing.'] = function (test) {
         tokenizer.advance();
     }
 
-    test.equal(tokensNumber, 105);
+    test.equal(tokensNumber, 103);
 
     // parser
 
     var parsed_script = parser.parse(sorter_script, 'Sorter');
     test.equal(parsed_script['public'].length, 1);
     test.equal(parsed_script['private'].length, 1);
-    test.equal(parsed_script['Hash'], '67d5735655eb74ce2bf86a8b');
+    test.equal(parsed_script['Hash'], '07fd75e36482fd42bbe9ab49');
 
     // compiler
 
