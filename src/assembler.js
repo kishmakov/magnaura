@@ -1,5 +1,7 @@
 (function (exports) {
 
+    var Hash;
+
 // stuff
 
     function assembleBody(body) {
@@ -13,6 +15,10 @@
 
     function assembleFunction(compiled, prototype, specifier) {
         var name = compiled.Name;
+
+        if (specifier === 'private') {
+            name += '_' + Hash
+        }
         var params = compiled.Arguments.concat(assembleBody(compiled.Body));
         prototype[name] = Function.apply(null, params);
         prototype[specifier].push(compiled);
@@ -22,6 +28,8 @@
 
     exports.assemble = function (compiled) {
         function KitchenObject() {}
+
+        Hash = compiled.Hash;
 
         var i, j, len;
         var specifiers = ['public', 'private', 'fusion'];

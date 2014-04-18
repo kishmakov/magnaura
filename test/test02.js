@@ -35,10 +35,6 @@ exports['Sorter processing.'] = function (test) {
 
     var assembled_object = assembler.assemble(compiled_script);
 
-    var b = [2, 1];
-    assembled_object.swap(b, 0, 1);
-    test.deepEqual(b, [1, 2]);
-
     var array = [9, 2, 3];
     assembled_object.sort(array);
     test.deepEqual(array, [2, 3, 9]);

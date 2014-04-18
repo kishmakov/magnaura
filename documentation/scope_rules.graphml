@@ -315,7 +315,7 @@
           <y:Geometry height="113.6875" width="409.625" x="55.687499999999886" y="1798.2458333333311"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#3366FF" type="line" width="1.0"/>
-          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Monospaced" fontSize="15" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="91.3046875" modelName="custom" textColor="#000000" visible="true" width="401.353515625" x="4.1357421875" y="11.19140625">public stable_sort_19cb178857258b9...(...) {
+          <y:NodeLabel alignment="left" autoSizePolicy="content" fontFamily="Monospaced" fontSize="15" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="91.3046875" modelName="custom" textColor="#000000" visible="true" width="302.01513671875" x="53.804931640625" y="11.19140625">public stable_sort(...) {
     ...
     sort_19cb178857258b9...(...);
     ...
@@ -336,7 +336,7 @@
           <y:Geometry height="30.0" width="409.625" x="55.687499999999886" y="1618.2458333333311"/>
           <y:Fill color="#85B1006B" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="17.96875" modelName="custom" textColor="#000000" visible="true" width="166.984375" x="121.32031249999989" y="6.015625">Hash: 19cb178857258b9...<y:LabelModel>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="17.96875" modelName="custom" textColor="#000000" visible="true" width="166.984375" x="121.3203125" y="6.015625">Hash: 19cb178857258b9...<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
             </y:LabelModel>
             <y:ModelParameter>
@@ -444,7 +444,7 @@
           <y:Geometry height="30.0" width="30.0" x="43.06249999999977" y="2033.1026041666653"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" modelName="custom" textColor="#000000" visible="true" width="4.0" x="13.0" y="13.0">
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" modelName="custom" textColor="#000000" visible="true" width="4.0" x="13.0" y="13.000000000000227">
             <y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
             </y:LabelModel>
@@ -623,7 +623,6 @@ stable_sort
       </data>
     </node>
     <edge id="e0" source="n0" target="n4">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="159.9734375" sy="-85.62083333333385" tx="0.0" ty="0.0"/>
@@ -634,7 +633,6 @@ stable_sort
       </data>
     </edge>
     <edge id="e1" source="n4" target="n5">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="-160.00624999999985" ty="-114.62083333333385"/>
@@ -645,7 +643,6 @@ stable_sort
       </data>
     </edge>
     <edge id="e2" source="n5" target="n10">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="4.5625" sy="191.2841552734385" tx="0.0" ty="0.0"/>
@@ -656,7 +653,6 @@ stable_sort
       </data>
     </edge>
     <edge id="e3" source="n10" target="n11">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="79.5625" ty="-191.2874593098927"/>
@@ -667,7 +663,6 @@ stable_sort
       </data>
     </edge>
     <edge id="e4" source="n11" target="n19">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="-202.4375000000001" sy="191.30313313802276" tx="0.0" ty="0.0"/>
@@ -678,7 +673,6 @@ stable_sort
       </data>
     </edge>
     <edge id="e5" source="n15" target="n19">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="124.11475830078109" sy="191.29971516927276" tx="0.0" ty="0.0">
@@ -691,7 +685,6 @@ stable_sort
       </data>
     </edge>
     <edge id="e6" source="n19" target="n21">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="-302.7875000000001"/>

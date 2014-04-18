@@ -8,7 +8,8 @@
 
 // global variables
 
-    var methods;
+    var PublicNames, PrivateNames, FusionNames;
+    var Hash;
 
 // stuff
 
@@ -288,8 +289,12 @@
         for (var type in processors) {
             if (expression.type === Syntax[type]) {
                 result = processors[type](expression);
-                if (result[0] in methods) {
+                if (result[0] in PublicNames) {
                     result[0] = 'this.' + result[0];
+                }
+
+                if (result[0] in PrivateNames) {
+                    result[0] = 'this.' + result[0] + '_' + Hash;
                 }
 
                 return result;
@@ -400,6 +405,12 @@
 
 // compilation
 
+    function collectNames(dest, methods) {
+        for (var i = 0, len = methods.length; i < len; i++) {
+            dest[methods[i]['Name']] = 0;
+        }
+    }
+
     function compileFunction(parsed) {
         var compiled = {};
 
@@ -413,19 +424,19 @@
     exports.compile = function (parsed) {
         var compiled = { public: [], private: [], fusion: [] };
         compiled['Name'] = parsed['Name'];
-        compiled['Hash'] = parsed['Hash'];
+        Hash = compiled['Hash'] = parsed['Hash'];
+
+        PublicNames = {};
+        collectNames(PublicNames, parsed['public']);
+
+        PrivateNames = {};
+        collectNames(PrivateNames, parsed['private']);
+
+        FusionNames = {};
+        collectNames(FusionNames, parsed['fusion']);
 
         var i, j, len;
         var specifiers = ['public', 'private', 'fusion'];
-
-        methods = {};
-
-        for (j = 0; j < 3; j++) {
-            var functions = parsed[specifiers[j]];
-            for (i = 0, len = functions.length; i < len; i++) {
-                methods[functions[i]['Name']] = 0;
-            }
-        }
 
         for (j = 0; j < 3; j++) {
             var functions = parsed[specifiers[j]];
