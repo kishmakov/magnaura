@@ -53,7 +53,7 @@
 
     function isKSKeyword(id) {
         switch (id) {
-            case 'control':
+            case 'test':
                 return true;
         }
 

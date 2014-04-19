@@ -57,13 +57,13 @@
             value === '&=' ||  value === '^=' || value === '|=';
     }
 
-    function matchAssignment(msg) {
+    function matchAssignment() {
         var token = tokenizer.getToken();
         tokenizer.advance();
 
         if (token.type !== Token.Operator || !isAssignment(token.value)) {
             throw {
-                message: msg + ': expected assignment operator'
+                message: 'expected assignment operator'
             };
         }
 
@@ -142,7 +142,7 @@
         var expression = parseConditionalExpression();
 
         if (nextIsAssignment()) {
-            var assignment = matchAssignment('parseAssignmentExpression');
+            var assignment = matchAssignment();
             return {
                 type: Syntax.AssignmentExpression,
                 operator: assignment.value,
@@ -642,7 +642,6 @@
 
         if (token.type === Token.JSKeyword) {
             switch (token.value) {
-                // JS
                 case 'break':
                     return parseBreakStatement();
                 case 'continue':
@@ -665,9 +664,13 @@
                     return parseWhileStatement();
                 case 'with':
                     return parseWithStatement();
-                // KS
-                case 'control':
-                    return parseControlStatement();
+            }
+        }
+
+        if (token.type === Token.KSKeyword) {
+            switch (token.value) {
+                case 'test':
+                    return parseTestStatement();
                 default:
                     break;
             }
@@ -738,6 +741,19 @@
             left: expression,
             right: parseShiftExpression()
         }
+    }
+
+    function parseTestStatement() {
+        matchToken(Token.KSKeyword, 'test');
+        matchToken(Token.Separator, '(');
+        var test = parseExpression();
+        matchToken(Token.Separator, ')');
+        matchSemicolon();
+
+        return {
+            type: Syntax.TestStatement,
+            test: test
+        };
     }
 
     function parseUnaryExpression() {
@@ -819,6 +835,8 @@
             list: declarations
         };
     }
+
+// top
 
     function parseFunctionElement() {
         var element = { Arguments: [] };

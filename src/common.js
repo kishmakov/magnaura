@@ -39,6 +39,7 @@
         MemberExpression: 'MemberExpression',
         ObjectExpression: 'ObjectExpression',
         ReturnStatement: 'ReturnStatement',
+        TestStatement: 'TestStatement',
         UnaryExpression: 'UnaryExpression',
         UpdateExpression: 'UpdateExpression',
         VariableDeclaration: 'VariableDeclaration',

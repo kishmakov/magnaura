@@ -41,9 +41,9 @@ exports['Sorter processing.'] = function (test) {
     test.done();
 };
 
-exports['Sequencer tokens.'] = function (test) {
-    var sequencer_source = fs.readFileSync('./data/test00/Sequencer.ks').toString();
-    tokenizer.init(sequencer_source);
+exports['Sequencer processing.'] = function (test) {
+    var sequencer_script = fs.readFileSync('./data/test00/Sequencer.ks').toString();
+    tokenizer.init(sequencer_script);
 
     var tokensNumber = 0;
     while (!tokenizer.isEOTokens()) {
@@ -52,16 +52,20 @@ exports['Sequencer tokens.'] = function (test) {
     }
 
     test.equal(tokensNumber, 199);
-    test.done();
-};
 
-exports['Sequencer parsing.'] = function (test) {
-    var sequencer_source = fs.readFileSync('./data/test00/Sequencer.ks').toString();
-    var parsed_script = parser.parse(sequencer_source);
+    // parser
+
+    var parsed_script = parser.parse(sequencer_script, 'Sequencer');
 
     test.equal(parsed_script['public'].length, 1);
     test.equal(parsed_script['private'].length, 1);
     test.equal(parsed_script['fusion'].length, 1);
     test.equal(parsed_script['Hash'], '83e8f3b971a4e122e7a1df5c');
+
+    // compiler
+
+    var compiled_script = compiler.compile(parsed_script);
+    fs.writeFileSync('sequencer.json', JSON.stringify(compiled_script, null, 2));
+
     test.done();
 };

@@ -11,6 +11,9 @@
     var PublicNames, PrivateNames, FusionNames;
     var Hash;
 
+    var UndefinedNames;
+    var ScopedNames;
+
 // stuff
 
     function expect(expectedType, element) {
@@ -34,6 +37,22 @@
         return function (object) {
             return [object[memberName]];
         };
+    }
+
+    function IdentifierProcessor(func) {
+        return function (object) {
+            var name = func(object)[0];
+
+            checkNameUsage(name);
+
+            if (name in PublicNames) {
+                name = 'this.' + name;
+            } else if (name in PrivateNames) {
+                name = 'this.' + name + '_' + Hash;
+            }
+
+            return [name];
+        }
     }
 
     function toString(result) {
@@ -61,9 +80,39 @@
             separator = '';
         }
 
-        list[list.length - 1] += separator + tail[0];
+        if (tail.length > 0) {
+            list[list.length - 1] += separator + tail[0];
+        }
+
         return tail.length > 1 ? list.concat(tail.slice(1)) : list;
 
+    }
+
+    function registerName(id) {
+        var lastScope = ScopedNames[ScopedNames.length - 1];
+        lastScope[id] = 0;
+    }
+
+    function checkNameUsage(name) {
+        if (name in PublicNames || name in PrivateNames) {
+            return;
+        }
+
+        for (var i = ScopedNames.length - 1; i >= 0; i--) {
+            if (name in ScopedNames[i]) {
+                return;
+            }
+        }
+
+        UndefinedNames.push(name);
+    }
+
+    function extendScope() {
+        ScopedNames.push({});
+    }
+
+    function shrinkScope() {
+        ScopedNames.pop();
     }
 
 // concatenation methods
@@ -97,7 +146,15 @@
     }
 
     function stringifyArrayInitializer(expression) {
-        return 'ArrayInitializer'; // TODO
+        var result = ['[]'];
+
+        if (expression.elements.length !== 0) {
+            result = stringifyArguments(expression.elements);
+            result[0] = '[' + result[0];
+            result[result.length - 1] += ']';
+        }
+
+        return result;
     }
 
     function stringifyAssignmentExpression(expression) {
@@ -127,9 +184,11 @@
 
     function stringifyBlockStatement(blockElement, deepness) {
         expect(Syntax.BlockStatement, blockElement);
+        extendScope();
         var result = [indent(deepness) + '{'];
         result = result.concat(stringifyStatements(blockElement.statements, deepness + 1));
         result.push(indent(deepness) + '}');
+        shrinkScope();
         return result;
     }
 
@@ -150,10 +209,16 @@
         }
 
         if (expression.type === Syntax.CallExpression) {
-            result = stringifyCallExpression(expression.callee);
-            result = concatenate(result, stringifyArguments(expression.arguments), '(');
-            result[result.length - 1] += ')';
-            return result;
+            var result = stringifyCallExpression(expression.callee);
+            var elements = ['()'];
+
+            if (expression.arguments.length !== 0) {
+                elements = stringifyArguments(expression.arguments);
+                elements[0] = '(' + elements[0];
+                elements[elements.length - 1] += ')';
+            }
+
+            return result = concatenate(result, elements);
         }
 
         return stringifyPrimaryExpression(expression);
@@ -264,7 +329,7 @@
     }
 
     function stringifyObjectInitializer(expression) {
-        return 'ObjectInitializer'; // TODO
+        return ['ObjectInitializer']; // TODO
     }
 
     function stringifyOptionalExpression(expression) {
@@ -277,7 +342,7 @@
 
     function stringifyPrimaryExpression(expression) {
         var processors = {
-            Identifier: GetterFunctional('name'),
+            Identifier: IdentifierProcessor(GetterFunctional('name')),
             Literal: GetterFunctional('value'),
             FunctionExpression: stringifyFunctionExpression,
             ObjectExpression: stringifyObjectInitializer,
@@ -288,16 +353,7 @@
 
         for (var type in processors) {
             if (expression.type === Syntax[type]) {
-                result = processors[type](expression);
-                if (result[0] in PublicNames) {
-                    result[0] = 'this.' + result[0];
-                }
-
-                if (result[0] in PrivateNames) {
-                    result[0] = 'this.' + result[0] + '_' + Hash;
-                }
-
-                return result;
+                return processors[type](expression);
             }
         }
 
@@ -359,6 +415,7 @@
 
     function stringifyVariableDeclaration(declaration) {
         expect(Syntax.VariableDeclaration, declaration);
+        registerName(declaration.id);
         var result = [declaration.id];
         result = concatenate(result, stringifyVariableInitializer(declaration.initializer));
         return result;
@@ -414,9 +471,18 @@
     function compileFunction(parsed) {
         var compiled = {};
 
+        extendScope();
+
+        for (var i = 0, len = parsed['Arguments'].length; i < len; i++) {
+            var argument = parsed['Arguments'][i];
+            registerName(argument[0] === '@' ? argument.substr(1) : argument);
+        }
+
         compiled['Name'] = parsed['Name'];
         compiled['Arguments'] = parsed['Arguments'];
         compiled['Body'] = stringifyBlockStatement(parsed['Body'], 0);
+
+        shrinkScope();
 
         return compiled;
     }
@@ -425,6 +491,9 @@
         var compiled = { public: [], private: [], fusion: [] };
         compiled['Name'] = parsed['Name'];
         Hash = compiled['Hash'] = parsed['Hash'];
+
+        UndefinedNames = [];
+        ScopedNames = [];
 
         PublicNames = {};
         collectNames(PublicNames, parsed['public']);
@@ -445,6 +514,8 @@
                 destination.push(compileFunction(functions[i]))
             }
         }
+
+        compiled['undefined'] = UndefinedNames;
 
         return compiled;
     }
