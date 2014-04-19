@@ -606,8 +606,7 @@
 
         matchToken(Token.JSKeyword, 'return');
         if (!nextIsSeparator(';')) {
-            var token = parseExpression();
-            argument = token.value;
+            argument = parseExpression();
         }
         matchSemicolon();
 
@@ -844,17 +843,17 @@
         // header
 
         var as = matchToken(Token.AccessSpecifier);
-        element['AccessSpecifier'] = as.value;
+        element['accessSpecifier'] = as.value;
 
         var name = matchToken(Token.Identifier);
-        element['Name'] = name.value;
+        element['name'] = name.value;
 
         // params
 
-        element['Arguments'] = parseParams();
+        element['arguments'] = parseParams();
         // body
 
-        element['Body'] = parseBlock();
+        element['body'] = parseBlock();
 
         return element;
     }
@@ -870,7 +869,7 @@
 
         while (!tokenizer.isEOTokens()) {
             var element = parseFunctionElement();
-            functionElements[element['AccessSpecifier']].push(element);
+            functionElements[element['accessSpecifier']].push(element);
         }
 
         return functionElements;
@@ -915,8 +914,8 @@
     exports.parse = function (source_string, name) {
         tokenizer.init(source_string);
         var result = parseScript();
-        result['Name'] = arguments.length > 1 ? name : '';
-        result['Hash'] = computeHash();
+        result['name'] = arguments.length > 1 ? name : '';
+        result['hash'] = computeHash();
         return result;
     }
 

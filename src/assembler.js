@@ -14,12 +14,12 @@
     }
 
     function assembleFunction(compiled, prototype, specifier) {
-        var name = compiled.Name;
+        var name = compiled.name;
 
         if (specifier === 'private') {
             name += '_' + Hash
         }
-        var params = compiled.Arguments.concat(assembleBody(compiled.Body));
+        var params = compiled.arguments.concat(assembleBody(compiled.body));
         prototype[name] = Function.apply(null, params);
         prototype[specifier].push(compiled);
     }
@@ -29,14 +29,14 @@
     exports.assemble = function (compiled) {
         function KitchenObject() {}
 
-        Hash = compiled.Hash;
+        Hash = compiled.hash;
 
         var i, j, len;
         var specifiers = ['public', 'private', 'fusion'];
         var prototype = KitchenObject.prototype;
         var functions;
 
-        prototype['Name'] = compiled['Name'];
+        prototype['name'] = compiled.name;
 
         for (j = 0; j < 3; j++) {
             prototype[specifiers[j]] = [];

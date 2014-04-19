@@ -22,8 +22,8 @@ exports['Sorter processing.'] = function (test) {
     // parser
 
     var parsed_script = parser.parse(sorter_script, 'Sorter');
-    test.equal(parsed_script['public'].length, 1);
-    test.equal(parsed_script['Hash'], '4a615d3e564d1aeced33898f');
+    test.equal(parsed_script.public.length, 1);
+    test.equal(parsed_script.hash, '4a615d3e564d1aeced33898f');
 
     // compiler
 
@@ -57,10 +57,10 @@ exports['Sequencer processing.'] = function (test) {
 
     var parsed_script = parser.parse(sequencer_script, 'Sequencer');
 
-    test.equal(parsed_script['public'].length, 1);
-    test.equal(parsed_script['private'].length, 1);
-    test.equal(parsed_script['fusion'].length, 1);
-    test.equal(parsed_script['Hash'], '83e8f3b971a4e122e7a1df5c');
+    test.equal(parsed_script.public.length, 1);
+    test.equal(parsed_script.private.length, 1);
+    test.equal(parsed_script.fusion.length, 1);
+    test.equal(parsed_script.hash, '83e8f3b971a4e122e7a1df5c');
 
     // compiler
 

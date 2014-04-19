@@ -363,12 +363,24 @@
         return result;
     }
 
+    function stringifyReturnStatement(statement, deepnees) {
+        var result = [indent(deepnees) + 'return'], argument;
+        if (statement.argument) {
+            argument = stringifyExpression(statement.argument);
+            result = concatenate(result, argument, ' ');
+        }
+
+        result[result.length - 1] += ';';
+        return result;
+    }
+
     function stringifyStatement(statement, deepness) {
         var processors = {
             BlockStatement: stringifyBlockStatement,
             ExpressionStatement: stringifyExpressionStatement,
             ForStatement: stringifyForStatement,
             IfStatement: stringifyIfStatement,
+            ReturnStatement: stringifyReturnStatement,
             VariableStatement: stringifyVariableStatement
         }; // TODO add extra
 
@@ -464,7 +476,7 @@
 
     function collectNames(dest, methods) {
         for (var i = 0, len = methods.length; i < len; i++) {
-            dest[methods[i]['Name']] = 0;
+            dest[methods[i].name] = 0;
         }
     }
 
@@ -473,14 +485,14 @@
 
         extendScope();
 
-        for (var i = 0, len = parsed['Arguments'].length; i < len; i++) {
-            var argument = parsed['Arguments'][i];
+        for (var i = 0, len = parsed.arguments.length; i < len; i++) {
+            var argument = parsed.arguments[i];
             registerName(argument[0] === '@' ? argument.substr(1) : argument);
         }
 
-        compiled['Name'] = parsed['Name'];
-        compiled['Arguments'] = parsed['Arguments'];
-        compiled['Body'] = stringifyBlockStatement(parsed['Body'], 0);
+        compiled['name'] = parsed.name;
+        compiled['arguments'] = parsed.arguments;
+        compiled['body'] = stringifyBlockStatement(parsed.body, 0);
 
         shrinkScope();
 
@@ -489,20 +501,20 @@
 
     exports.compile = function (parsed) {
         var compiled = { public: [], private: [], fusion: [] };
-        compiled['Name'] = parsed['Name'];
-        Hash = compiled['Hash'] = parsed['Hash'];
+        compiled['name'] = parsed.name;
+        Hash = compiled['hash'] = parsed.hash;
 
         UndefinedNames = [];
         ScopedNames = [];
 
         PublicNames = {};
-        collectNames(PublicNames, parsed['public']);
+        collectNames(PublicNames, parsed.public);
 
         PrivateNames = {};
-        collectNames(PrivateNames, parsed['private']);
+        collectNames(PrivateNames, parsed.private);
 
         FusionNames = {};
-        collectNames(FusionNames, parsed['fusion']);
+        collectNames(FusionNames, parsed.fusion);
 
         var i, j, len;
         var specifiers = ['public', 'private', 'fusion'];
