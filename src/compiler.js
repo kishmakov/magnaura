@@ -104,7 +104,11 @@
             }
         }
 
-        UndefinedNames.push(name);
+        if (!(name in UndefinedNames)) {
+            UndefinedNames[name] = 0;
+        }
+
+        UndefinedNames[name]++;
     }
 
     function extendScope() {
@@ -253,10 +257,6 @@
         return stringifyLogicalExpression(expression);
     }
 
-    function stringifyFunctionExpression(expression) {
-        return 'FunctionExpression'; // TODO
-    }
-
     function stringifyExpression(expression) {
         expect(Syntax.Expression, expression);
         var result = [];
@@ -293,6 +293,27 @@
 
         var result = [first];
         result = result.concat(stringifyStatement(expression.body, deepness + 1));
+
+        return result;
+    }
+
+    function stringifyFunctionExpression(expression, deepness) {
+        var result = indent(deepness) + 'function ';
+        result += expression.id ? expression.id : '';
+
+        extendScope();
+
+        result += '(';
+        for (var i = 0, len = expression.params.length; i < len; i++) {
+            result += i > 0 ? ', ' : '';
+            result += expression.params[i];
+            registerName(expression.params[i]);
+        }
+        result += ')';
+        var body = stringifyBlockStatement(expression.body, deepness + 1);
+        result = [result].concat(body);
+
+        shrinkScope();
 
         return result;
     }
@@ -344,7 +365,6 @@
         var processors = {
             Identifier: IdentifierProcessor(GetterFunctional('name')),
             Literal: GetterFunctional('value'),
-            FunctionExpression: stringifyFunctionExpression,
             ObjectExpression: stringifyObjectInitializer,
             ArrayExpression: stringifyArrayInitializer
         };
@@ -378,6 +398,7 @@
         var processors = {
             BlockStatement: stringifyBlockStatement,
             ExpressionStatement: stringifyExpressionStatement,
+            FunctionExpression: stringifyFunctionExpression,
             ForStatement: stringifyForStatement,
             IfStatement: stringifyIfStatement,
             ReturnStatement: stringifyReturnStatement,
@@ -504,7 +525,7 @@
         compiled['name'] = parsed.name;
         Hash = compiled['hash'] = parsed.hash;
 
-        UndefinedNames = [];
+        UndefinedNames = {};
         ScopedNames = [];
 
         PublicNames = {};
