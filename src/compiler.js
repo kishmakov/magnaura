@@ -43,9 +43,7 @@
         return function (object) {
             var name = func(object)[0];
 
-            checkNameUsage(name);
-
-            if (name in PublicNames) {
+            if (undefinedName(name) || name in PublicNames) {
                 name = 'this.' + name;
             } else if (name in PrivateNames) {
                 name = 'this.' + name + '_' + Hash;
@@ -93,14 +91,14 @@
         lastScope[id] = 0;
     }
 
-    function checkNameUsage(name) {
+    function undefinedName(name) {
         if (name in PublicNames || name in PrivateNames) {
-            return;
+            return false;
         }
 
         for (var i = ScopedNames.length - 1; i >= 0; i--) {
             if (name in ScopedNames[i]) {
-                return;
+                return false;
             }
         }
 
@@ -109,6 +107,7 @@
         }
 
         UndefinedNames[name]++;
+        return true;
     }
 
     function extendScope() {
@@ -314,7 +313,11 @@
 
     function stringifyFunctionExpression(expression, deepness) {
         var result = indent(deepness) + 'function ';
-        result += expression.id ? expression.id : '';
+
+        if (expression.id) {
+            result += expression.id;
+            registerName(expression.id);
+        }
 
         extendScope();
 
