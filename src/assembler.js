@@ -13,7 +13,7 @@
         return result;
     }
 
-    function assembleFunction(compiled, prototype, specifier) {
+    function assembleMethod(compiled, prototype, specifier) {
         var name = compiled.name;
 
         if (specifier === 'private') {
@@ -24,6 +24,18 @@
         prototype[specifier].push(compiled);
     }
 
+    function assembleFusion(compiled, prototype, specifier) {
+        var name = compiled.name;
+
+        if (specifier === 'private') {
+            name += '_' + Hash
+        }
+        var params = compiled.arguments.concat(assembleBody(compiled.body));
+        prototype[name] = Function.apply(null, params);
+        prototype[specifier].push(compiled);
+    }
+
+
 // compilation
 
     exports.assemble = function (compiled) {
@@ -31,19 +43,29 @@
 
         Hash = compiled.hash;
 
-        var i, j, len;
-        var specifiers = ['public', 'private', 'fusion'];
+        var i, len;
         var prototype = KitchenObject.prototype;
         var functions;
 
         prototype['name'] = compiled.name;
+        prototype['hash'] = compiled.hash;
 
-        for (j = 0; j < 3; j++) {
-            prototype[specifiers[j]] = [];
-            functions = compiled[specifiers[j]];
-            for (i = 0, len = functions.length; i < len; i++) {
-                assembleFunction(functions[i], prototype, specifiers[j]);
-            }
+        prototype['public'] = [];
+        functions = compiled['public'];
+        for (i = 0, len = functions.length; i < len; i++) {
+            assembleMethod(functions[i], prototype, 'public');
+        }
+
+        prototype['private'] = [];
+        functions = compiled['private'];
+        for (i = 0, len = functions.length; i < len; i++) {
+            assembleMethod(functions[i], prototype, 'private');
+        }
+
+        prototype['private'] = [];
+        functions = compiled['fusion'];
+        for (i = 0, len = functions.length; i < len; i++) {
+            assembleFusion(functions[i], prototype);
         }
 
         return new KitchenObject();

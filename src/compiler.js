@@ -196,6 +196,15 @@
         return result;
     }
 
+    function stringifyBreakStatement(statement, deepness) {
+        var result = indent(deepness) + 'break';
+        if (statement.label) {
+            result += ' ' + statement.label;
+        }
+
+        return [result + ';'];
+    }
+
     function stringifyCallExpression(expression) {
         var result;
 
@@ -277,7 +286,13 @@
         if (expression.type === Syntax.VariableDefinition) {
             return stringifyVariableDefinition(expression);
         }
-        return ['ForInitializer']; // TODO
+
+        if (expression.type === Syntax.Expression) {
+            return stringifyExpression(expression);
+        }
+
+        expect(Syntax.Empty, expression);
+        return [''];
     }
 
     function stringifyForStatement(expression, deepness) {
@@ -397,6 +412,7 @@
     function stringifyStatement(statement, deepness) {
         var processors = {
             BlockStatement: stringifyBlockStatement,
+            BreakStatement: stringifyBreakStatement,
             ExpressionStatement: stringifyExpressionStatement,
             FunctionExpression: stringifyFunctionExpression,
             ForStatement: stringifyForStatement,
