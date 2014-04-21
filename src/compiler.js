@@ -86,9 +86,19 @@
 
     }
 
-    function registerName(id) {
+    function registerName(id, value) {
         var lastScope = ScopedNames[ScopedNames.length - 1];
-        lastScope[id] = 0;
+        lastScope[id] = arguments.length < 2 ? true : value;
+    }
+
+    function lookupName(id) {
+        for (var i = ScopedNames.length - 1; i >= 0; i--) {
+            if (id in ScopedNames[i]) {
+                return ScopedNames[i][id];
+            }
+        }
+
+        return null;
     }
 
     function undefinedName(name) {
@@ -96,10 +106,8 @@
             return false;
         }
 
-        for (var i = ScopedNames.length - 1; i >= 0; i--) {
-            if (name in ScopedNames[i]) {
-                return false;
-            }
+        if (Boolean(lookupName(name))) {
+            return false;
         }
 
         if (!(name in UndefinedNames)) {
@@ -316,7 +324,7 @@
 
         if (expression.id) {
             result += expression.id;
-            registerName(expression.id);
+            registerName(expression.id, expression.params);
         }
 
         extendScope();
@@ -421,6 +429,7 @@
             ForStatement: stringifyForStatement,
             IfStatement: stringifyIfStatement,
             ReturnStatement: stringifyReturnStatement,
+            TestStatement: stringifyTestStatement,
             VariableStatement: stringifyVariableStatement
         }; // TODO add extra
 
@@ -438,6 +447,44 @@
         for (var i = 0; i < statements.length; i++) {
             result = result.concat(stringifyStatement(statements[i], deepness));
         }
+
+        return result;
+    }
+
+    function stringifyTestStatement(statement, deepness) {
+        expect(Syntax.Expression, statement.test);
+        expect(Syntax.CallExpression, statement.test.expressions[0]);
+        var call = statement.test.expressions[0];
+        var result = [];
+        var offset = indent(deepness);
+        var snapshot = offset + 'this.test_call';
+
+        expect(Syntax.Identifier, call.callee);
+
+        var callee = call.callee.name;
+        var params = lookupName(callee);
+
+        result.push(snapshot + ' = {};');
+        result.push(snapshot + '[\'callee\'] = \'' + callee + '\';');
+
+        var signature = snapshot + '[\'signature\'] = [';
+        for (var i = 0, len = params.length; i < len; i++) {
+            signature += i > 0 ? ', ' : '';
+            signature += '\'' + params[i] + '\'';
+        }
+        result.push(signature + '];');
+
+        var provided = [snapshot + '[\'params\'] = ['];
+        params = concatenate(provided, stringifyArguments(call.arguments));
+        provided[provided.length - 1] += '];';
+        result = result.concat(provided);
+
+        result.push(offset + 'if (!' + callee + '(') ;
+        result = concatenate(result, stringifyArguments(call.arguments));
+        result[result.length - 1] += '))';
+        result.push(offset + '{');
+        result.push(indent(deepness + 1) + 'throw this.test_call;');
+        result.push(offset + '}');
 
         return result;
     }

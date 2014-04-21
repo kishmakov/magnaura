@@ -62,7 +62,7 @@
             assembleMethod(functions[i], prototype, 'private');
         }
 
-        prototype['private'] = [];
+        prototype['fusion'] = [];
         functions = compiled['fusion'];
         for (i = 0, len = functions.length; i < len; i++) {
             assembleFusion(functions[i], prototype);
