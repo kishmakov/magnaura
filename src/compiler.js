@@ -8,8 +8,8 @@
 
 // global variables
 
-    var PublicNames, PrivateNames, FusionNames;
-    var Hash;
+    var PublicNames, PrivateNames, Hash;
+    var FusionNames, FusionMode = false, FusionMethods;
 
     var UndefinedNames;
     var ScopedNames;
@@ -118,8 +118,16 @@
         return true;
     }
 
-    function extendScope() {
-        ScopedNames.push({});
+    function extendScope(ids) {
+        var scope = {};
+
+        if (arguments.length > 0) {
+            for (var i in ids) {
+                scope[ids[i]] = true;
+            }
+        }
+
+        ScopedNames.push(scope);
     }
 
     function shrinkScope() {
@@ -218,6 +226,19 @@
         if (expression.type === Syntax.MemberExpression) {
             result = stringifyCallExpression(expression.object);
             if (expression.property.type === Syntax.Identifier) {
+                if (FusionMode && result[0] in FusionNames) {
+                    var object = result[0];
+                    var method = expression.property.name;
+                    if (!(object in FusionMethods)) {
+                        FusionMethods[object] = {};
+                    }
+
+                    if (!(method in FusionMethods[object])) {
+                        FusionMethods[object][method] = 0;
+                    }
+
+                    FusionMethods[object][method]++;
+                }
                 result = concatenate(result, [expression.property.name], '.');
             } else {
                 var se = stringifyExpression(expression.property);
@@ -327,13 +348,12 @@
             registerName(expression.id, expression.params);
         }
 
-        extendScope();
+        extendScope(expression.params);
 
         result += '(';
         for (var i = 0, len = expression.params.length; i < len; i++) {
             result += i > 0 ? ', ' : '';
             result += expression.params[i];
-            registerName(expression.params[i]);
         }
         result += ')';
         var body = stringifyBlockStatement(expression.body, deepness + 1);
@@ -475,14 +495,15 @@
         result.push(signature + '];');
 
         var provided = [snapshot + '[\'params\'] = ['];
+        FusionMode = false;
         params = concatenate(provided, stringifyArguments(call.arguments));
+        FusionMode = true;
         provided[provided.length - 1] += '];';
         result = result.concat(provided);
 
         result.push(offset + 'if (!' + callee + '(') ;
         result = concatenate(result, stringifyArguments(call.arguments));
-        result[result.length - 1] += '))';
-        result.push(offset + '{');
+        result[result.length - 1] += ')) {';
         result.push(indent(deepness + 1) + 'throw this.test_call;');
         result.push(offset + '}');
 
@@ -561,57 +582,105 @@
 
 // compilation
 
-    function collectNames(dest, methods) {
+    function collectNames(methods) {
+        var result = {}
         for (var i = 0, len = methods.length; i < len; i++) {
-            dest[methods[i].name] = 0;
+            result[methods[i].name] = 0;
         }
+
+        return result;
     }
 
     function compileFunction(parsed) {
         var compiled = {};
 
-        extendScope();
+        extendScope(parsed.arguments);
 
-        for (var i = 0, len = parsed.arguments.length; i < len; i++) {
-            var argument = parsed.arguments[i];
-            registerName(argument[0] === '@' ? argument.substr(1) : argument);
-        }
-
-        compiled['name'] = parsed.name;
         compiled['arguments'] = parsed.arguments;
         compiled['body'] = stringifyBlockStatement(parsed.body, 0);
 
         shrinkScope();
+        return compiled;
+    }
+
+    function compilePublic(parsed) {
+        var compiled = compileFunction(parsed);
+        compiled['name'] = parsed.name;
+
+        return compiled;
+    }
+
+    function compilePrivate(parsed) {
+        var compiled = compileFunction(parsed);
+        compiled['name'] = parsed.name + '_' + Hash;
+
+        return compiled;
+    }
+
+    function compileFusion(parsed) {
+        var compiled = {};
+        compiled['name'] = parsed.name;
+        compiled['arguments'] = [];
+
+        FusionNames = {};
+        FusionMethods = {};
+        FusionMode = true;
+
+        for (var i in parsed.arguments) {
+            var arg = parsed.arguments[i];
+            if (arg[0] === '@') {
+                arg = arg.substr(1);
+            }
+            FusionNames[arg] = arg;
+            compiled.arguments.push(arg);
+        }
+
+        extendScope(FusionNames);
+
+        var body = stringifyBlockStatement(parsed.body, 0);
+        compiled['body'] = ['{'];
+
+        for (var object in FusionMethods) {
+            for (var method in FusionMethods[object]) {
+                compiled.body.push('\tif (typeof ' + object + '.' + method + ' !== \'function\') {');
+                compiled.body.push('\t\tthrow {');
+                compiled.body.push('\t\t\tmessage: \'object ' + object + ' does not have method ' + method + '\'');
+                compiled.body.push('\t\t};');
+                compiled.body.push('\t}');
+            }
+        }
+
+        compiled.body = compiled.body.concat(body.slice(1));
+
+        shrinkScope();
+        FusionMode = false;
 
         return compiled;
     }
 
     exports.compile = function (parsed) {
         var compiled = { public: [], private: [], fusion: [] };
-        compiled['name'] = parsed.name;
+        compiled['description'] = {name: parsed.name};
         Hash = compiled['hash'] = parsed.hash;
 
         UndefinedNames = {};
         ScopedNames = [];
 
-        PublicNames = {};
-        collectNames(PublicNames, parsed.public);
+        PublicNames = collectNames(parsed.public);
+        PrivateNames = collectNames(parsed.private);
 
-        PrivateNames = {};
-        collectNames(PrivateNames, parsed.private);
+        var i, len;
 
-        FusionNames = {};
-        collectNames(FusionNames, parsed.fusion);
+        for (i = 0, len = parsed.public.length; i < len; i++) {
+            compiled.public.push(compilePublic(parsed.public[i]))
+        }
 
-        var i, j, len;
-        var specifiers = ['public', 'private', 'fusion'];
+        for (i = 0, len = parsed.private.length; i < len; i++) {
+            compiled.private.push(compilePrivate(parsed.private[i]))
+        }
 
-        for (j = 0; j < 3; j++) {
-            var functions = parsed[specifiers[j]];
-            for (i = 0, len = functions.length; i < len; i++) {
-                var destination = compiled[specifiers[j]];
-                destination.push(compileFunction(functions[i]))
-            }
+        for (i = 0, len = parsed.fusion.length; i < len; i++) {
+            compiled.fusion.push(compileFusion(parsed.fusion[i]))
         }
 
         compiled['undefined'] = UndefinedNames;

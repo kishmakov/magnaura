@@ -14,27 +14,18 @@
     }
 
     function assembleMethod(compiled, prototype, specifier) {
-        var name = compiled.name;
-
-        if (specifier === 'private') {
-            name += '_' + Hash
-        }
         var params = compiled.arguments.concat(assembleBody(compiled.body));
-        prototype[name] = Function.apply(null, params);
+        prototype[compiled.name] = Function.apply(null, params);
         prototype[specifier].push(compiled);
     }
 
-    function assembleFusion(compiled, prototype, specifier) {
+    function assembleFusion(compiled, prototype) {
         var name = compiled.name;
 
-        if (specifier === 'private') {
-            name += '_' + Hash
-        }
         var params = compiled.arguments.concat(assembleBody(compiled.body));
         prototype[name] = Function.apply(null, params);
-        prototype[specifier].push(compiled);
+        prototype.fusion.push(compiled);
     }
-
 
 // compilation
 
@@ -47,7 +38,7 @@
         var prototype = KitchenObject.prototype;
         var functions;
 
-        prototype['name'] = compiled.name;
+        prototype['description'] = compiled.description;
         prototype['hash'] = compiled.hash;
 
         prototype['public'] = [];

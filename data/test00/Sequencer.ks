@@ -14,7 +14,7 @@ private sequence(n) {
     return res;
 }
 
-fusion sorted_sequencer(@sorter) {
+fusion SortedSequencer(@sorter) {
 
     function check(au, as, sort) {
         sort(au);
