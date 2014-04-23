@@ -618,13 +618,12 @@
     }
 
     function compileFusion(parsed) {
-        var compiled = {};
+        var compiled = {}, object;
         compiled['name'] = parsed.name;
         compiled['arguments'] = [];
 
         FusionNames = {};
         FusionMethods = {};
-        FusionMode = true;
 
         for (var i in parsed.arguments) {
             var arg = parsed.arguments[i];
@@ -635,12 +634,15 @@
             compiled.arguments.push(arg);
         }
 
+        FusionMode = true;
         extendScope(FusionNames);
-
         var body = stringifyBlockStatement(parsed.body, 0);
+        shrinkScope();
+        FusionMode = false;
+
         compiled['body'] = ['{'];
 
-        for (var object in FusionMethods) {
+        for (object in FusionMethods) {
             for (var method in FusionMethods[object]) {
                 compiled.body.push('\tif (typeof ' + object + '.' + method + ' !== \'function\') {');
                 compiled.body.push('\t\tthrow {');
@@ -650,10 +652,15 @@
             }
         }
 
-        compiled.body = compiled.body.concat(body.slice(1));
+        compiled.body = compiled.body.concat(body.slice(1, body.length - 1));
 
-        shrinkScope();
-        FusionMode = false;
+        compiled.body.push('\tvar result = this.fusionCopy(\'' + parsed.name + '\');');
+        for (object in FusionMethods) {
+            compiled.body.push('\tthis.fusionAccumulate(result, ' + object + ');');
+        }
+        compiled.body.push('\tthis.fusionFinalize(result);');
+        compiled.body.push('\treturn result;');
+        compiled.body.push('}');
 
         return compiled;
     }

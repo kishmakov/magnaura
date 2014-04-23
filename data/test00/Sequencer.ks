@@ -1,5 +1,5 @@
 public sorted_sequence(n) {
-    var s = sequence();
+    var s = sequence(n);
     sort(s);
     return s;
 }
@@ -9,7 +9,7 @@ private sequence(n) {
     var res = [];
 
     for (var i = 0; i < n; i++)
-        res.push(((n + i) * i) % mod);
+        res.push((5 * n + (n + i) * i) % mod);
 
     return res;
 }

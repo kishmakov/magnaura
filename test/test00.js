@@ -51,7 +51,7 @@ exports['Sequencer Processing'] = function (test) {
         tokenizer.advance();
     }
 
-    test.equal(tokensNumber, 199);
+    test.equal(tokensNumber, 204);
 
     // parser
 
@@ -60,7 +60,7 @@ exports['Sequencer Processing'] = function (test) {
     test.equal(sequencer_parsed.public.length, 1);
     test.equal(sequencer_parsed.private.length, 1);
     test.equal(sequencer_parsed.fusion.length, 1);
-    test.equal(sequencer_parsed.hash, 'e6aa32b729d8b922e2668b68');
+    test.equal(sequencer_parsed.hash, '20b902a9ab518fefa9f5bed9');
 
     // compiler
 
@@ -89,6 +89,11 @@ exports['Fusion of Sequencer and Sorter'] = function (test) {
 
     var sequencer_assembled = assembler.assemble(sequencer_compiled);
     var sorter_assembled = assembler.assemble(sorter_compiled);
+
+    var sorted_sequencer = sequencer_assembled.SortedSequencer(sorter_assembled);
+
+    test.equal(sequencer_assembled.hash, sorted_sequencer.hash);
+    test.deepEqual(sorted_sequencer.sorted_sequence(5), [10, 25, 31, 39, 49]);
 
     test.done();
 };
