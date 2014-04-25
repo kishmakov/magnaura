@@ -1,11 +1,16 @@
+
 var fs = require('fs');
+
+var assembler = require('../src/assembler');
 var compiler = require('../src/compiler');
 var parser = require('../src/parser');
 var tokenizer = require('../src/tokenizer');
 
-exports['Check for-cycle statement parsing.'] = function (test) {
-    var fors_script = fs.readFileSync('./data/test01/Fors.ks').toString();
-    tokenizer.init(fors_script);
+exports['Sorter processing.'] = function (test) {
+    // tokenizer
+
+    var sorter_script = fs.readFileSync('./data/test01/Sorter.ks').toString();
+    tokenizer.init(sorter_script);
 
     var tokensNumber = 0;
     while (!tokenizer.isEOTokens()) {
@@ -13,19 +18,27 @@ exports['Check for-cycle statement parsing.'] = function (test) {
         tokenizer.advance();
     }
 
-    test.equal(tokensNumber, 140);
+    test.equal(tokensNumber, 103);
 
     // parser
 
-    var parsed_script = parser.parse(fors_script, 'Fors');
+    var parsed_script = parser.parse(sorter_script, 'Sorter');
     test.equal(parsed_script.public.length, 1);
-    test.equal(parsed_script.hash, '1197de201aa8be6bf5a56b19');
+    test.equal(parsed_script.private.length, 1);
+    test.equal(parsed_script.hash, '07fd75e36482fd42bbe9ab49');
 
     // compiler
 
     var compiled_script = compiler.compile(parsed_script);
-    fs.writeFileSync('fors.json', JSON.stringify(compiled_script, null, 2));
+    fs.writeFileSync('sorter2.json', JSON.stringify(compiled_script, null, 2));
 
+    // assembler
+
+    var assembled_object = assembler.assemble(compiled_script);
+
+    var array = [9, 2, 3];
+    assembled_object.sort(array);
+    test.deepEqual(array, [2, 3, 9]);
 
     test.done();
 };

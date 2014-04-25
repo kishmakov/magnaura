@@ -404,7 +404,7 @@
     };
 
     exports.isEOTokens = function () {
-        return tokenIndex >= tokens.length;
+        return tokenIndex >= tokens.length || tokens[tokenIndex].type == Token.EOF;
     };
 
 }(typeof exports === 'undefined' ? (tokenizer = {}) : exports));

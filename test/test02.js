@@ -5,7 +5,7 @@ var compiler = require('../src/compiler');
 var parser = require('../src/parser');
 var tokenizer = require('../src/tokenizer');
 
-exports['Sorter processing.'] = function (test) {
+exports['Sorter Processing'] = function (test) {
     // tokenizer
 
     var sorter_script = fs.readFileSync('./data/test02/Sorter.ks').toString();
@@ -17,27 +17,83 @@ exports['Sorter processing.'] = function (test) {
         tokenizer.advance();
     }
 
-    test.equal(tokensNumber, 103);
+    test.equal(tokensNumber, 85);
 
     // parser
 
-    var parsed_script = parser.parse(sorter_script, 'Sorter');
-    test.equal(parsed_script.public.length, 1);
-    test.equal(parsed_script.private.length, 1);
-    test.equal(parsed_script.hash, '07fd75e36482fd42bbe9ab49');
+    var sorter_parsed = parser.parse(sorter_script, 'Sorter');
+    test.equal(sorter_parsed.public.length, 1);
+    test.equal(sorter_parsed.hash, '4a615d3e564d1aeced33898f');
 
     // compiler
 
-    var compiled_script = compiler.compile(parsed_script);
-    fs.writeFileSync('sorter2.json', JSON.stringify(compiled_script, null, 2));
+    var sorter_compiled = compiler.compile(sorter_parsed);
+    fs.writeFileSync('sorter.json', JSON.stringify(sorter_compiled, null, 2));
 
     // assembler
 
-    var assembled_object = assembler.assemble(compiled_script);
+    var sorter_assembled = assembler.assemble(sorter_compiled);
 
     var array = [9, 2, 3];
-    assembled_object.sort(array);
+    sorter_assembled.sort(array);
     test.deepEqual(array, [2, 3, 9]);
+
+    test.done();
+};
+
+exports['Sequencer Processing'] = function (test) {
+    var sequencer_script = fs.readFileSync('./data/test02/Sequencer.ks').toString();
+    tokenizer.init(sequencer_script);
+
+    var tokensNumber = 0;
+    while (!tokenizer.isEOTokens()) {
+        tokensNumber++;
+        tokenizer.advance();
+    }
+
+    test.equal(tokensNumber, 204);
+
+    // parser
+
+    var sequencer_parsed = parser.parse(sequencer_script, 'Sequencer');
+
+    test.equal(sequencer_parsed.public.length, 1);
+    test.equal(sequencer_parsed.private.length, 1);
+    test.equal(sequencer_parsed.fusion.length, 1);
+    test.equal(sequencer_parsed.hash, '20b902a9ab518fefa9f5bed9');
+
+    // compiler
+
+    var sequencer_compiled = compiler.compile(sequencer_parsed);
+    fs.writeFileSync('sequencer.json', JSON.stringify(sequencer_compiled, null, 2));
+
+    test.done();
+};
+
+exports['Fusion of Sequencer and Sorter'] = function (test) {
+    var sequencer_script = fs.readFileSync('./data/test02/Sequencer.ks').toString();
+    var sorter_script = fs.readFileSync('./data/test02/Sorter.ks').toString()
+
+    // parser
+
+    var sequencer_parsed = parser.parse(sequencer_script, 'Sequencer');
+    var sorter_parsed = parser.parse(sorter_script, 'Sorter');
+
+
+    // compiler
+
+    var sequencer_compiled = compiler.compile(sequencer_parsed);
+    var sorter_compiled = compiler.compile(sorter_parsed);
+
+    // assembler
+
+    var sequencer_assembled = assembler.assemble(sequencer_compiled);
+    var sorter_assembled = assembler.assemble(sorter_compiled);
+
+    var sorted_sequencer = sequencer_assembled.SortedSequencer(sorter_assembled);
+
+    test.equal(sequencer_assembled.hash, sorted_sequencer.hash);
+    test.deepEqual(sorted_sequencer.sorted_sequence(5), [10, 25, 31, 39, 49]);
 
     test.done();
 };
