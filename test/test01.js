@@ -1,3 +1,4 @@
+// Checks different sorters.
 
 var fs = require('fs');
 
@@ -6,11 +7,19 @@ var compiler = require('../src/compiler');
 var parser = require('../src/parser');
 var tokenizer = require('../src/tokenizer');
 
-exports['Sorter processing.'] = function (test) {
+var arrays = [
+    [[2, 1], [1, 2]],
+    [[9, 2, 3], [2, 3, 9]],
+    [[1, 2, 1], [1, 1, 2]],
+    [[4, 1, 5, 2, 6, 3], [1, 2, 3, 4, 5, 6]],
+    [[4, 5, 3, 2, 1, 4], [1, 2, 3, 4, 4, 5]]
+];
+
+exports['Simple Sorter Composite'] = function (test) {
     // tokenizer
 
-    var sorter_script = fs.readFileSync('./data/test01/Sorter.ks').toString();
-    tokenizer.init(sorter_script);
+    var SorterScript = fs.readFileSync('./data/test01/SorterComposite.ks').toString();
+    tokenizer.init(SorterScript);
 
     var tokensNumber = 0;
     while (!tokenizer.isEOTokens()) {
@@ -22,23 +31,61 @@ exports['Sorter processing.'] = function (test) {
 
     // parser
 
-    var parsed_script = parser.parse(sorter_script, 'Sorter');
-    test.equal(parsed_script.public.length, 1);
-    test.equal(parsed_script.private.length, 1);
-    test.equal(parsed_script.hash, '07fd75e36482fd42bbe9ab49');
+    var SorterParsed = parser.parse(SorterScript, 'Sorter');
+    test.equal(SorterParsed.public.length, 1);
+    test.equal(SorterParsed.private.length, 1);
+    test.equal(SorterParsed.hash, '07fd75e36482fd42bbe9ab49');
 
     // compiler
 
-    var compiled_script = compiler.compile(parsed_script);
-    fs.writeFileSync('sorter2.json', JSON.stringify(compiled_script, null, 2));
+    var SorterCompiled = compiler.compile(SorterParsed);
+    fs.writeFileSync('sorter_composite.json', JSON.stringify(SorterCompiled, null, 2));
 
     // assembler
 
-    var assembled_object = assembler.assemble(compiled_script);
+    var Sorter = assembler.assemble(SorterCompiled);
 
-    var array = [9, 2, 3];
-    assembled_object.sort(array);
-    test.deepEqual(array, [2, 3, 9]);
+    for (var i = 0; i < arrays.length; i++) {
+        Sorter.sort(arrays[i][0]);
+        test.deepEqual(arrays[i][0], arrays[i][1]);
+    }
+
+    test.done();
+};
+
+exports['Simpler Sorter Monolithic'] = function (test) {
+    // tokenizer
+
+    var SorterScript = fs.readFileSync('./data/test01/SorterMonolithic.ks').toString();
+    tokenizer.init(SorterScript);
+
+    var tokensNumber = 0;
+    while (!tokenizer.isEOTokens()) {
+        tokensNumber++;
+        tokenizer.advance();
+    }
+
+    test.equal(tokensNumber, 85);
+
+    // parser
+
+    var SorterParsed = parser.parse(SorterScript, 'Sorter');
+    test.equal(SorterParsed.public.length, 1);
+    test.equal(SorterParsed.hash, '4a615d3e564d1aeced33898f');
+
+    // compiler
+
+    var SorterCompiled = compiler.compile(SorterParsed);
+    fs.writeFileSync('sorter_monolithic.json', JSON.stringify(SorterCompiled, null, 2));
+
+    // assembler
+
+    var Sorter = assembler.assemble(SorterCompiled);
+
+    for (var i = 0; i < arrays.length; i++) {
+        Sorter.sort(arrays[i][0]);
+        test.deepEqual(arrays[i][0], arrays[i][1]);
+    }
 
     test.done();
 };
