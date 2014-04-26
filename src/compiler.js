@@ -238,8 +238,11 @@
                     }
 
                     FusionMethods[object][method]++;
+                    result = [object + '.' + expression.property.name];
+                    result[0] += '.bind(' + object + ')';
+                } else {
+                    result = concatenate(result, [expression.property.name], '.');
                 }
-                result = concatenate(result, [expression.property.name], '.');
             } else {
                 var se = stringifyExpression(expression.property);
                 se[se.length - 1] += ']';

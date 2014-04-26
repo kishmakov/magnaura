@@ -15,7 +15,7 @@ var arrays = [
     [[4, 5, 3, 2, 1, 4], [1, 2, 3, 4, 4, 5]]
 ];
 
-exports['Simple Sorter Composite'] = function (test) {
+exports['Simple Composite Sorter'] = function (test) {
     // tokenizer
 
     var SorterScript = fs.readFileSync('./data/test01/SorterComposite.ks').toString();
@@ -53,7 +53,7 @@ exports['Simple Sorter Composite'] = function (test) {
     test.done();
 };
 
-exports['Simpler Sorter Monolithic'] = function (test) {
+exports['Simpler Monolithic Sorter'] = function (test) {
     // tokenizer
 
     var SorterScript = fs.readFileSync('./data/test01/SorterMonolithic.ks').toString();

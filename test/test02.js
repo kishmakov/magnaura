@@ -42,7 +42,7 @@ var sequences = [
 ];
 
 
-exports['Fusion of Sequencer and Sorter'] = function (test) {
+exports['Fusion of Sequencer and Monolithic Sorter'] = function (test) {
     var SequencerScript = fs.readFileSync('./data/test02/Sequencer.ks').toString();
     var SorterScript = fs.readFileSync('./data/test01/SorterMonolithic.ks').toString()
 
@@ -75,7 +75,7 @@ exports['Fusion of Sequencer and Sorter'] = function (test) {
     test.done();
 };
 
-exports['Fusion of Sequencer and Combined Sorter'] = function (test) {
+exports['Fusion of Sequencer and Composite Sorter'] = function (test) {
     var SequencerScript = fs.readFileSync('./data/test02/Sequencer.ks').toString();
     var SorterScript = fs.readFileSync('./data/test01/SorterComposite.ks').toString()
 
@@ -95,15 +95,15 @@ exports['Fusion of Sequencer and Combined Sorter'] = function (test) {
     var Sequencer = assembler.assemble(SequencerCompiled);
     var Sorter = assembler.assemble(SorterCompiled);
 
-//    var SortedSequencer = Sequencer.SortedSequencer(Sorter);
-//
-//    test.equal(Sequencer.hash, SortedSequencer.hash);
-//
-//    for (var i = 0; i < sequences.length; i++) {
-//        var num = sequences[i][0];
-//        var sequence = sequences[i][1];
-//        test.deepEqual(SortedSequencer.sorted_sequence(num), sequence);
-//    }
+    var SortedSequencer = Sequencer.SortedSequencer(Sorter);
+
+    test.equal(Sequencer.hash, SortedSequencer.hash);
+
+    for (var i = 0; i < sequences.length; i++) {
+        var num = sequences[i][0];
+        var sequence = sequences[i][1];
+        test.deepEqual(SortedSequencer.sorted_sequence(num), sequence);
+    }
 
     test.done();
 };
