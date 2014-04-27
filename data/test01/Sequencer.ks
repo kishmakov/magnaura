@@ -1,4 +1,4 @@
-public sorted_sequence(n) {
+public sortedSequence(n) {
     var s = sequence(n);
     sort(s);
     return s;
