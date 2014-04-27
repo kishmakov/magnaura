@@ -35,6 +35,7 @@ exports['Simple Composite Sorter'] = function (test) {
 
     var SorterCompiled = compiler.compile(SorterParsed);
     var Sorter = assembler.assemble(SorterCompiled);
+    fs.writeFileSync('sorter_composite.json', JSON.stringify(SorterCompiled, null, 2));
 
     for (var i = 0; i < arrays.length; i++) {
         Sorter.sort(arrays[i][0]);
@@ -63,6 +64,7 @@ exports['Simpler Monolithic Sorter'] = function (test) {
 
     var SorterCompiled = compiler.compile(SorterParsed);
     var Sorter = assembler.assemble(SorterCompiled);
+    fs.writeFileSync('sorter_monolithic.json', JSON.stringify(SorterCompiled, null, 2));
 
     for (var i = 0; i < arrays.length; i++) {
         Sorter.sort(arrays[i][0]);
@@ -89,7 +91,6 @@ exports['Bas Sorter'] = function (test) {
     test.equal(SorterParsed.hash, '01a0ddc55958538c5330e4d1');
 
     var SorterCompiled = compiler.compile(SorterParsed);
-    fs.writeFileSync('sorter.json', JSON.stringify(SorterCompiled, null, 2));
     var Sorter = assembler.assemble(SorterCompiled);
 
     for (var i = 0; i < arrays.length; i++) {

@@ -83,7 +83,18 @@
         }
 
         return tail.length > 1 ? list.concat(tail.slice(1)) : list;
+    }
 
+    function addBody(header, body) {
+        if (body[0].trim() !== '{') {
+            for (var i = 0, len = body.length; i < len; i++) {
+                body[i] ='\t' + body[i];
+            }
+            return header.concat(body);
+        } else {
+            body[0] = '{';
+            return concatenate(header, body, ' ');
+        }
     }
 
     function registerName(id, value) {
@@ -338,9 +349,8 @@
         first += ')';
 
         var result = [first];
-        result = result.concat(stringifyStatement(expression.body, deepness + 1));
-
-        return result;
+        var body = stringifyStatement(expression.body, deepness);
+        return addBody(result, body);
     }
 
     function stringifyFunctionExpression(expression, deepness) {
@@ -359,7 +369,7 @@
             result += expression.params[i];
         }
         result += ')';
-        var body = stringifyBlockStatement(expression.body, deepness + 1);
+        var body = stringifyBlockStatement(expression.body, deepness);
         result = [result].concat(body);
 
         shrinkScope();
@@ -370,7 +380,8 @@
     function stringifyIfStatement(statement, deepness) {
         expect(Syntax.IfStatement, statement);
         var result = [indent(deepness) + 'if (' + toString(stringifyExpression(statement.test)) + ')'];
-        result = result.concat(stringifyStatement(statement.consequent, deepness + 1));
+        var body = stringifyStatement(statement.consequent, deepness);
+        result = addBody(result, body);
         if (statement.alternate !== null) {
             result.push(indent(deepness) + 'else');
             result = result.concat(stringifyStatement(statement.alternate, deepness + 1));

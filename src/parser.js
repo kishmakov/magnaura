@@ -503,7 +503,7 @@
         while (!nextIsSeparator('}')) {
             var key = tokenizer.getToken();
             tokenizer.advance();
-            matchToken(Token.Separator, ':');
+            matchToken(Token.Operator, ':');
             var value = parseAssignmentExpression();
             properties.push({
                 key: key,
