@@ -43,10 +43,12 @@
         return function (object) {
             var name = func(object)[0];
 
-            if (undefinedName(name) || name in PublicNames) {
-                name = 'this.' + name;
-            } else if (name in PrivateNames) {
-                name = 'this.' + name + '_' + Hash;
+            if (!moduleName(name)) {
+                if (undefinedName(name) || name in PublicNames) {
+                    name = 'this.' + name;
+                } else if (name in PrivateNames) {
+                    name = 'this.' + name + '_' + Hash;
+                }
             }
 
             return [name];
@@ -118,6 +120,10 @@
         }
 
         return null;
+    }
+
+    function moduleName(name) {
+        return name === 'Math';
     }
 
     function undefinedName(name) {

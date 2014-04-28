@@ -223,31 +223,29 @@
     }
 
     function parseNumericLiteral() {
-        var ch = lookAhead(); advance();
-
-        if (!isDigit(ch) && (ch !== '.')) {
+        var ch = lookAhead(), number = '';
+        if (!isDigit(ch)) {
             throw {
                 message: 'Unexpected start of numeric literal: ' + ch
             }
         }
 
-        var number = ch;
-        if (ch === '.') {
-            number = '0' + number;
-        }
-
         while (true) {
+            number += ch; advance();
             ch = lookAhead();
             if (!isDigit(ch)) {
                 break;
             }
-            number += ch; advance();
         }
 
-        if (number === '0.') {
-            throw {
-                message: 'Expecting decimal digits after the dot sign'
-            };
+        if (ch === '.') {
+            while (true) {
+                number += ch; advance();
+                ch = lookAhead();
+                if (!isDigit(ch)) {
+                    break;
+                }
+            }
         }
 
         if (ch === 'e' || ch === 'E') {

@@ -22,7 +22,7 @@ public mesh2D(n, minX, maxX, minY, maxY) {
 
 fusion Mesher2D(@Mesher1D) {
     function compareIntegrals(func, grid, expected) {
-        var result = 0, x, w;
+        var result = 0;
         for (var i = 0, len = grid.length; i < len; i++) {
             result += func(grid[i].x) * grid[i].weight;
         }
