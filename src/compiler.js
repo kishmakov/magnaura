@@ -53,6 +53,14 @@
         }
     }
 
+    function AddIndent(func, deepness) {
+        return function (object) {
+            var result = func(object, deepness);
+            result[0] = indent(deepness) + result[0];
+            return result;
+        }
+    }
+
     function toString(result) {
         if (!(result instanceof Array)) {
             throw {
@@ -147,17 +155,17 @@
 
 // concatenation methods
 
-    function stringifyArguments(arguments) {
+    function stringifyArguments(arguments, deepness) {
         var result = [], temp;
         for (var i = 0; i < arguments.length; i++) {
-            temp = stringifyAssignmentExpression(arguments[i]);
+            temp = stringifyAssignmentExpression(arguments[i], deepness);
             result = concatenate(result, temp, ', ');
         }
 
         return result;
     }
 
-    function stringifyArithmeticExpression(expression) {
+    function stringifyArithmeticExpression(expression, deepness) {
         if (expression.type === Syntax.ArithmeticExpression) {
             var multiplicative = expression.operator === '*'
                 || expression.operator === '/' || expression.operator === '%';
@@ -166,20 +174,21 @@
                 ? stringifyUnaryExpression
                 : stringifyArithmeticExpression;
 
-            var result = func(expression.left);
+            var result = func(expression.left, deepness);
             result = concatenate(result, [expression.operator], ' ');
-            result = concatenate(result, stringifyArithmeticExpression(expression.right), ' ');
+            var second = stringifyArithmeticExpression(expression.right, deepness);
+            result = concatenate(result, second, ' ');
             return result;
         }
 
-        return stringifyUnaryExpression(expression);
+        return stringifyUnaryExpression(expression, deepness);
     }
 
-    function stringifyArrayInitializer(expression) {
+    function stringifyArrayInitializer(expression, deepness) {
         var result = ['[]'];
 
         if (expression.elements.length !== 0) {
-            result = stringifyArguments(expression.elements);
+            result = stringifyArguments(expression.elements, deepness);
             result[0] = '[' + result[0];
             result[result.length - 1] += ']';
         }
@@ -187,29 +196,31 @@
         return result;
     }
 
-    function stringifyAssignmentExpression(expression) {
+    function stringifyAssignmentExpression(expression, deepness) {
         if (expression.type === Syntax.AssignmentExpression) {
-            var left = toString(stringifyConditionalExpression(expression.left))
-            var result = [left + ' ' + expression.operator + ' '];
-            result = concatenate(result, stringifyAssignmentExpression(expression.right));
+            var result = stringifyConditionalExpression(expression.left, deepness);
+            result = concatenate(result, [expression.operator], ' ');
+            var rhs = stringifyAssignmentExpression(expression.right, deepness);
+            result = concatenate(result, rhs, ' ');
             return result;
         }
 
-        return stringifyConditionalExpression(expression);
+        return stringifyConditionalExpression(expression, deepness);
     }
 
-    function stringifyBitwiseExpression(expression) {
+    function stringifyBitwiseExpression(expression, deepness) {
         if (expression.type === Syntax.BitwiseExpression) {
             var func = expression.operator === '&'
                 ? stringifyComparisonExpression
                 : stringifyBitwiseExpression;
 
-            var result = func(expression.left);
+            var result = func(expression.left, deepness);
             result = concatenate(result, [expression.operator], ' ');
-            result = concatenate(result, stringifyBitwiseExpression(expression.right), ' ');
+            var second = stringifyBitwiseExpression(expression.right, deepness);
+            result = concatenate(result, second, ' ');
             return result;
         }
-        return stringifyComparisonExpression(expression);
+        return stringifyComparisonExpression(expression, deepness);
     }
 
     function stringifyBlockStatement(blockElement, deepness) {
@@ -231,11 +242,11 @@
         return [result + ';'];
     }
 
-    function stringifyCallExpression(expression) {
+    function stringifyCallExpression(expression, deepness) {
         var result;
 
         if (expression.type === Syntax.MemberExpression) {
-            result = stringifyCallExpression(expression.object);
+            result = stringifyCallExpression(expression.object, deepness);
             if (expression.property.type === Syntax.Identifier) {
                 if (FusionMode && result[0] in FusionNames) {
                     var object = result[0];
@@ -255,7 +266,7 @@
                     result = concatenate(result, [expression.property.name], '.');
                 }
             } else {
-                var se = stringifyExpression(expression.property);
+                var se = stringifyExpression(expression.property, deepness);
                 se[se.length - 1] += ']';
                 result = concatenate(result, se, '[');
             }
@@ -264,22 +275,22 @@
         }
 
         if (expression.type === Syntax.CallExpression) {
-            var result = stringifyCallExpression(expression.callee);
+            result = stringifyCallExpression(expression.callee, deepness);
             var elements = ['()'];
 
             if (expression.arguments.length !== 0) {
-                elements = stringifyArguments(expression.arguments);
+                elements = stringifyArguments(expression.arguments, deepness);
                 elements[0] = '(' + elements[0];
                 elements[elements.length - 1] += ')';
             }
 
-            return result = concatenate(result, elements);
+            return concatenate(result, elements);
         }
 
-        return stringifyPrimaryExpression(expression);
+        return stringifyPrimaryExpression(expression, deepness);
     }
 
-    function stringifyComparisonExpression(expression) {
+    function stringifyComparisonExpression(expression, deepness) {
         if (expression.type === Syntax.ComparisonExpression) {
             var inequality = expression.operator === '<' || expression.operator === '>'
                 || expression.operator === '<=' || expression.operator === '>=';
@@ -288,40 +299,47 @@
                 ? stringifyArithmeticExpression
                 : stringifyComparisonExpression;
 
-            var result = func(expression.left);
+            var result = func(expression.left, deepness);
             result = concatenate(result, [expression.operator], ' ');
-            result = concatenate(result, stringifyComparisonExpression(expression.right), ' ');
+            var second = stringifyComparisonExpression(expression.right, deepness);
+            result = concatenate(result, second, ' ');
             return result;
         }
 
-        return stringifyArithmeticExpression(expression);
+        return stringifyArithmeticExpression(expression, deepness);
     }
 
-    function stringifyConditionalExpression(expression) {
+    function stringifyConditionalExpression(expression, deepness) {
         if (expression.type === Syntax.ConditionalExpression) {
-            var result = stringifyLogicalExpression(expression.test);
-            result = concatenate(result, stringifyAssignmentExpression(expression.consequent), ' ? ');
-            result = concatenate(result, stringifyAssignmentExpression(expression.alternate), ' : ');
+            var result = stringifyLogicalExpression(expression.test, deepness);
+            var former = stringifyAssignmentExpression(expression.consequent, deepness);
+            var latter = stringifyAssignmentExpression(expression.alternate, deepness);
+            result = concatenate(result, former, ' ? ');
+            result = concatenate(result, latter, ' : ');
             return result;
         }
 
-        return stringifyLogicalExpression(expression);
+        return stringifyLogicalExpression(expression, deepness);
     }
 
-    function stringifyExpression(expression) {
+    function stringifyExpression(expression, deepness) {
         expect(Syntax.Expression, expression);
         var result = [];
         var expressions = expression.expressions;
+        var assignment;
         for (var i = 0; i < expressions.length; i++) {
-            result = concatenate(result, stringifyAssignmentExpression(expressions[i]), ', ');
+            assignment = stringifyAssignmentExpression(expressions[i], deepness);
+            result = concatenate(result, assignment, ', ');
         }
         return result;
     }
 
     function stringifyExpressionStatement(statement, deepness) {
         expect(Syntax.ExpressionStatement, statement);
-        var result = toString(stringifyExpression(statement.expression));
-        return [indent(deepness) + result + ';'];
+        var result = stringifyExpression(statement.expression, deepness);
+        result[0] = indent(deepness) + result[0];
+        result[result.length - 1] += ';';
+        return result;
     }
 
     function stringifyForInitializer(expression) {
@@ -354,7 +372,7 @@
     }
 
     function stringifyFunctionExpression(expression, deepness) {
-        var result = indent(deepness) + 'function ';
+        var result = 'function ';
 
         if (expression.id) {
             result += expression.id;
@@ -383,70 +401,86 @@
         var body = stringifyStatement(statement.consequent, deepness);
         result = addBody(result, body);
         if (statement.alternate !== null) {
-            result.push(indent(deepness) + 'else');
-            result = result.concat(stringifyStatement(statement.alternate, deepness + 1));
+            body = stringifyStatement(statement.alternate, deepness);
+            body = addBody(['else'], body);
+            result = addBody(result, body);
         }
 
         return result;
     }
 
-    function stringifyLeftSide(expression) {
-        return stringifyCallExpression(expression);
+    function stringifyLeftSide(expression, deepness) {
+        return stringifyCallExpression(expression, deepness);
     }
 
-    function stringifyLogicalExpression(expression) {
+    function stringifyLogicalExpression(expression, deepness) {
         if (expression.type === Syntax.LogicalExpression) {
             var func = expression.operator === '&&'
                 ? stringifyBitwiseExpression
                 : stringifyLogicalExpression;
 
-            var result = func(expression.left);
+            var result = func(expression.left, deepness);
             result = concatenate(result, [expression.operator], ' ');
-            result = concatenate(result, stringifyLogicalExpression(expression.right), ' ');
+            var second = stringifyLogicalExpression(expression.right, deepness);
+            result = concatenate(result, second, ' ');
             return result;
         }
 
-        return stringifyBitwiseExpression(expression);
+        return stringifyBitwiseExpression(expression, deepness);
     }
 
-    function stringifyObjectInitializer(expression) {
-        return ['ObjectInitializer']; // TODO
+    function stringifyObjectInitializer(expression, deepness) {
+        var result = [], record, value;
+        result.push('{');
+        for (var i = 0, len = expression.properties.length; i < len; i++) {
+            value = expression.properties[i].value;
+            value = stringifyAssignmentExpression(value, deepness + 1);
+            record = [indent(deepness + 1) + expression.properties[i].key];
+            record = concatenate(record, value, ': ');
+            if (i + 1 < len) {
+                record[record.length - 1] += ','
+            }
+            result = result.concat(record);
+        }
+        result.push(indent(deepness) + '}');
+        return result;
     }
 
-    function stringifyOptionalExpression(expression) {
+    function stringifyOptionalExpression(expression, deepness) {
         if (expression.type === Syntax.Empty) {
             return [''];
         }
 
-        return stringifyExpression(expression);
+        return stringifyExpression(expression, deepness);
     }
 
-    function stringifyPrimaryExpression(expression) {
+    function stringifyPrimaryExpression(expression, deepness) {
         var processors = {
+            ArrayExpression: stringifyArrayInitializer,
+            FunctionExpression: stringifyFunctionExpression,
             Identifier: IdentifierProcessor(GetterFunctional('name')),
             Literal: GetterFunctional('value'),
-            ObjectExpression: stringifyObjectInitializer,
-            ArrayExpression: stringifyArrayInitializer
+            ObjectExpression: stringifyObjectInitializer
         };
 
         var result;
 
         for (var type in processors) {
             if (expression.type === Syntax[type]) {
-                return processors[type](expression);
+                return processors[type](expression, deepness);
             }
         }
 
-        result = stringifyExpression(expression);
+        result = stringifyExpression(expression, deepness);
         result[0] = '(' + result[0];
         result[result.length - 1] += ')';
         return result;
     }
 
-    function stringifyReturnStatement(statement, deepnees) {
-        var result = [indent(deepnees) + 'return'], argument;
+    function stringifyReturnStatement(statement, deepness) {
+        var result = [indent(deepness) + 'return'], argument;
         if (statement.argument) {
-            argument = stringifyExpression(statement.argument);
+            argument = stringifyExpression(statement.argument, deepness);
             result = concatenate(result, argument, ' ');
         }
 
@@ -459,7 +493,7 @@
             BlockStatement: stringifyBlockStatement,
             BreakStatement: stringifyBreakStatement,
             ExpressionStatement: stringifyExpressionStatement,
-            FunctionExpression: stringifyFunctionExpression,
+            FunctionExpression: AddIndent(stringifyFunctionExpression, deepness),
             ForStatement: stringifyForStatement,
             IfStatement: stringifyIfStatement,
             ReturnStatement: stringifyReturnStatement,
@@ -510,13 +544,13 @@
 
         var provided = [snapshot + '[\'params\'] = ['];
         FusionMode = false;
-        params = concatenate(provided, stringifyArguments(call.arguments));
+        params = concatenate(provided, stringifyArguments(call.arguments, 0));
         FusionMode = true;
         provided[provided.length - 1] += '];';
         result = result.concat(provided);
 
         result.push(offset + 'if (!' + callee + '(') ;
-        result = concatenate(result, stringifyArguments(call.arguments));
+        result = concatenate(result, stringifyArguments(call.arguments, 0));
         result[result.length - 1] += ')) {';
         result.push(indent(deepness + 1) + 'throw this.test_call;');
         result.push(offset + '}');
@@ -524,15 +558,16 @@
         return result;
     }
 
-    function stringifyUnaryExpression(expression) {
-        var result;
+    function stringifyUnaryExpression(expression, deepness) {
+        var result, argument;
         if (expression.type === Syntax.UpdateExpression) {
             if (expression.prefix) {
+                argument = stringifyUnaryExpression(expression.argument, deepness);
                 result = [expression.operator];
-                resutl = concatenate(result, stringifyUnaryExpression(expression.argument));
+                result = concatenate(result, argument);
                 return result;
             } else {
-                result = stringifyLeftSide(expression.argument);
+                result = stringifyLeftSide(expression.argument, deepness);
                 result = concatenate(result, [expression.operator]);
                 return result;
             }
@@ -540,26 +575,29 @@
 
         if (expression.type == Syntax.UnaryExpression) {
             result = [expression.operator];
-            result = concatenate(result, stringifyUnaryExpression(expression.argument))
+            argument = stringifyUnaryExpression(expression.argument, deepness);
+            result = concatenate(result, argument);
             return  result;
         }
 
-        return stringifyLeftSide(expression);
+        return stringifyLeftSide(expression, deepness);
     }
 
-    function stringifyVariableDeclaration(declaration) {
+    function stringifyVariableDeclaration(declaration, deepness) {
         expect(Syntax.VariableDeclaration, declaration);
         registerName(declaration.id);
         var result = [declaration.id];
-        result = concatenate(result, stringifyVariableInitializer(declaration.initializer));
+        var initializer = stringifyVariableInitializer(declaration.initializer, deepness);
+        result = concatenate(result, initializer);
         return result;
     }
 
-    function stringifyVariableDeclarationList(list) {
-        var result = [];
+    function stringifyVariableDeclarationList(list, deepness) {
+        var result = [], element;
 
         for (var i = 0; i < list.length; i++) {
-            result = concatenate(result, stringifyVariableDeclaration(list[i]), ', ');
+            element = stringifyVariableDeclaration(list[i], deepness);
+            result = concatenate(result, element, ', ');
         }
 
         return result;
@@ -572,32 +610,34 @@
         return list;
     }
 
-    function stringifyVariableInitializer(initializer) {
+    function stringifyVariableInitializer(initializer, deepness) {
         if (initializer.type === Syntax.Empty) {
             return [''];
         }
 
         var result = [' = '];
-        result = concatenate(result, stringifyAssignmentExpression(initializer));
+        var rhs = stringifyAssignmentExpression(initializer, deepness);
+        result = concatenate(result, rhs);
         return result;
     }
 
     function stringifyVariableStatement(variableStatement, deepness) {
         expect(Syntax.VariableStatement, variableStatement);
         var declarations = variableStatement.list;
-        var result = indent(deepness) + 'var ';
+        var result = [indent(deepness) + 'var'];
+        var declaration;
         for (var i = 0; i < declarations.length; i++) {
-            result += stringifyVariableDeclaration(declarations[i]);
-            result += i + 1 == declarations.length ? ';' : ', ';
+            declaration = stringifyVariableDeclaration(declarations[i], deepness);
+            result = concatenate(result, declaration, i == 0 ? ' ' : ', ');
         }
-
-        return [result];
+        result[result.length - 1] += ';';
+        return result;
     }
 
 // compilation
 
     function collectNames(methods) {
-        var result = {}
+        var result = {};
         for (var i = 0, len = methods.length; i < len; i++) {
             result[methods[i].name] = 0;
         }

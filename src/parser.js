@@ -408,11 +408,10 @@
 
         matchToken(Token.JSKeyword, 'function');
         if (!nextIsSeparator('(')) {
-            var token = matchToken(Token.Identifier);
-            id = token.value;
+            id = matchToken(Token.Identifier).value;
         }
 
-        params = parseParams();
+        var params = parseParams();
 
         return {
             type: Syntax.FunctionExpression,
@@ -506,7 +505,7 @@
             matchToken(Token.Operator, ':');
             var value = parseAssignmentExpression();
             properties.push({
-                key: key,
+                key: key.value,
                 value: value
             });
 
@@ -523,11 +522,11 @@
     }
 
     function parseParams() {
-        var params = [];
+        var params = [], token;
 
         matchToken(Token.Separator, '(');
         while (!nextIsSeparator(')')) {
-            var token = matchToken(Token.Identifier);
+            token = matchToken(Token.Identifier);
             params.push(token.value);
             if (nextIsSeparator(',')) {
                 tokenizer.advance();
@@ -756,9 +755,9 @@
     }
 
     function parseUnaryExpression() {
-
+        var op;
         if (nextIsOperator('++') || nextIsOperator('--')) {
-            var op = tokenizer.getToken();
+            op = tokenizer.getToken();
             tokenizer.advance();
             return {
                 type: Syntax.UpdateExpression,
@@ -770,7 +769,7 @@
 
         if (nextIsOperator('+') || nextIsOperator('-') ||
             nextIsOperator('~') || nextIsOperator('!')) {
-            var op = tokenizer.getToken();
+            op = tokenizer.getToken();
             tokenizer.advance();
             return {
                 type: Syntax.UnaryExpression,
