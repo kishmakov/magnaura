@@ -6,15 +6,13 @@ public mesh2D(n, minX, maxX, minY, maxY) {
     var ylen = m1y.length;
     var w2;
 
-    var m2 = [], row;
+    var m2 = [];
 
     for (var i = 0; i < xlen; i++) {
-        row = [];
         for (var j = 0; j < ylen; j++) {
             w2 = m1x[i].weight * m1y[j].weight;
-            row.push({x: m1x[i].x, y: m1y[j].x, weight: w2});
+            m2.push({x: m1x[i].x, y: m1y[j].x, weight: w2});
         }
-        m2.push(row);
     }
 
     return m2;

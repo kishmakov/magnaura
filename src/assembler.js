@@ -65,7 +65,7 @@
         }
 
         for (name in publicNames) {
-            var pattern = 'this.' + name + '(';
+            var pattern = new RegExp('this\\.' + name + '\\(', 'g');
             var exchange = 'this.' + name + '_' + hash + '(';
             for (specifier in Specifiers) {
                 functions = result[specifier];
