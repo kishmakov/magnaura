@@ -50,7 +50,7 @@ exports['PreMesher2D Processing'] = function (test) {
 
     test.equal(PreMesherParsed.public.length, 1);
     test.equal(PreMesherParsed.fusion.length, 1);
-    test.equal(PreMesherParsed.hash, '70b079198762c9ed8fd7ac88');
+    test.equal(PreMesherParsed.hash, 'dcf0cef71b1acde9036e397f');
 
     // compiler
 
@@ -117,6 +117,48 @@ exports['Mesher2D creation'] = function (test) {
 
     var Integrator = PreIntegrator.Integrator(Mesher2D);
     test.equal(PreIntegrator.hash, Integrator.hash);
+
+    var ns = [
+        [10, 0.1],
+        [20, 0.05],
+        [40, 0.025]
+    ];
+
+    var settings = [];
+
+    settings.push({
+        func: function (x, y) { return x * Math.sin(x + y); },
+        minX: 0,
+        maxX: Math.PI,
+        minY: 0,
+        maxY: Math.PI,
+        need: -4
+    });
+
+    settings.push({
+        func: function (x, y) { return x * y * Math.sin(x + y); },
+        minX: 0,
+        maxX: 0.5 * Math.PI,
+        minY: 0,
+        maxY: 0.5 * Math.PI,
+        need: Math.PI - 2
+    });
+
+    for (var i = 0; i < settings.length; i++) {
+        var setting = settings[i];
+        for (var j = 0; j < ns.length; j++) {
+            var have = Integrator.integrate(
+                setting.func,
+                ns[j][0],
+                setting.minX,
+                setting.maxX,
+                setting.minY,
+                setting.maxY
+            );
+
+            test.ok(Math.abs(have - setting.need) < ns[j][1], 'Error is not acceptable.');
+        }
+    }
 
     test.done();
 };

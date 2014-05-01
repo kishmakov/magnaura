@@ -19,12 +19,12 @@ public mesh2D(n, minX, maxX, minY, maxY) {
 }
 
 fusion Mesher2D(@Mesher1D) {
-    function compareIntegrals(func, grid, expected) {
-        var result = 0;
+    function compareIntegrals(func, grid, need) {
+        var have = 0;
         for (var i = 0, len = grid.length; i < len; i++) {
-            result += func(grid[i].x) * grid[i].weight;
+            have += func(grid[i].x) * grid[i].weight;
         }
-        return Math.abs(result - expected) < 1e-8;
+        return Math.abs(have - need) < 1e-8;
     }
 
     var settings = [];
@@ -33,26 +33,26 @@ fusion Mesher2D(@Mesher1D) {
         func: function (x) { return 1; },
         minX: -10,
         maxX: 10,
-        integral: 20
+        need: 20
     });
 
     settings.push({
         func: function (x) { return 4 * x; },
         minX: 0,
         maxX: 1,
-        integral: 2
+        need: 2
     });
 
     settings.push({
         func: function (x) { return 2 * x; },
         minX: 0,
         maxX: 10,
-        integral: 100
+        need: 100
     });
 
     function check(setting, mesh1D) {
         var m1 = mesh1D(10, setting.minX, setting.maxX);
-        return compareIntegrals(setting.func, m1, setting.integral);
+        return compareIntegrals(setting.func, m1, setting.need);
     }
 
     for (var i = 0, len = settings.length; i < len; i++) {
