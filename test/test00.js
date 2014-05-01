@@ -25,7 +25,7 @@ exports['For Statements'] = function (test) {
     // compiler
 
     var ForStatementCompiled = compiler.compile(ForStatementsParsed);
-    fs.writeFileSync('ForStatements.json', JSON.stringify(ForStatementCompiled, null, 2));
+    // fs.writeFileSync('ForStatements.json', JSON.stringify(ForStatementCompiled, null, 2));
 
     // assembler
 

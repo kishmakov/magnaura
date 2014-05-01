@@ -21,7 +21,7 @@
         prototype[specifier].push({
             name: compiled.name,
             arguments: compiled.arguments,
-            body: assembleBody(compiled.body)
+            body: compiled.body
         });
     }
 
@@ -31,7 +31,7 @@
             for (var i = 0, len = functions.length; i < len; i++) {
                 var name = functions[i].name;
                 var arguments = functions[i].arguments;
-                var body = functions[i].body;
+                var body = assembleBody(functions[i].body);
                 object[name] = Function.apply(null, arguments.concat(body));
             }
         }
@@ -70,7 +70,10 @@
             for (specifier in Specifiers) {
                 functions = result[specifier];
                 for (i = 0, len = functions.length; i < len; i++) {
-                    functions[i].body = functions[i].body.replace(pattern, exchange);
+                    var body = functions[i].body;
+                    for (var j = 0, bodyLen = body.length; j < bodyLen; j++) {
+                        body[j] = body[j].replace(pattern, exchange);
+                    }
                 }
             }
         }
@@ -128,6 +131,23 @@
         prototype.fusionFinalize = finalize;
 
         return new KitchenObject();
+    }
+
+    exports.disassemble = function (object) {
+        var compiled = {};
+
+        compiled['description'] = object.description;
+        compiled['hash'] = object.hash;
+
+        for (var specifier in Specifiers) {
+            functions = object[specifier];
+            compiled[specifier] = [];
+            for (var i = 0, len = functions.length; i < len; i++) {
+                compiled[specifier].push(functions[i]);
+            }
+        }
+
+        return compiled;
     }
 
 }(typeof exports === 'undefined' ? (assembler = {}) : exports));

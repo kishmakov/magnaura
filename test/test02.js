@@ -26,8 +26,9 @@ exports['Mesher1D Processing'] = function (test) {
 
     // compiler
 
-    var Mesher1DSimpleCompiled = compiler.compile(Mesher1DSimpleParsed);
-    fs.writeFileSync('mesher1dsimple.json', JSON.stringify(Mesher1DSimpleCompiled, null, 2));
+    var compilation = compiler.compile.bind(compiler, Mesher1DSimpleParsed);
+    test.doesNotThrow(compilation);
+//    fs.writeFileSync('mesher1dsimple.json', JSON.stringify(Mesher1DSimpleCompiled, null, 2));
 
     test.done();
 };
@@ -54,8 +55,10 @@ exports['PreMesher2D Processing'] = function (test) {
 
     // compiler
 
-    var PreMesherCompiled = compiler.compile(PreMesherParsed);
-    fs.writeFileSync('premesher2d.json', JSON.stringify(PreMesherCompiled, null, 2));
+    var compilation = compiler.compile.bind(compiler, PreMesherParsed);
+    test.doesNotThrow(compilation);
+    // fs.writeFileSync('premesher2d.json', JSON.stringify(PreMesherCompiled, null, 2));
+
 
     test.done();
 };
@@ -82,8 +85,8 @@ exports['PreIntegrator Processing'] = function (test) {
 
     // compiler
 
-    var PreIntegratorCompiled = compiler.compile(PreIntegratorParsed);
-    fs.writeFileSync('preintegrator.json', JSON.stringify(PreIntegratorCompiled, null, 2));
+    var compilation = compiler.compile.bind(compiler, PreIntegratorParsed);
+    test.doesNotThrow(compilation);
 
     test.done();
 };
@@ -106,7 +109,7 @@ exports['Mesher2D creation'] = function (test) {
     var PreMesher2DCompiled = compiler.compile(PreMesher2DParsed);
     var PreIntegratorCompiled = compiler.compile(PreIntegratorParsed);
 
-    // assembler
+    // assembler & disassembler
 
     var Mesher1DSimple = assembler.assemble(Mesher1DSimpleCompiled);
     var PreMesher2D = assembler.assemble(PreMesher2DCompiled);
@@ -117,6 +120,15 @@ exports['Mesher2D creation'] = function (test) {
 
     var Integrator = PreIntegrator.Integrator(Mesher2D);
     test.equal(PreIntegrator.hash, Integrator.hash);
+
+    var IntegratorCompiled = assembler.disassemble(Integrator);
+    test.equal(IntegratorCompiled.public.length, 1);
+    test.equal(IntegratorCompiled.private.length, 2);
+    fs.writeFileSync('integrator.json', JSON.stringify(IntegratorCompiled, null, 2));
+
+    var Integrator2 = assembler.assemble(IntegratorCompiled);
+
+    // integrators test
 
     var ns = [
         [10, 0.1],
@@ -156,7 +168,18 @@ exports['Mesher2D creation'] = function (test) {
                 setting.maxY
             );
 
+            var have2 = Integrator2.integrate(
+                setting.func,
+                ns[j][0],
+                setting.minX,
+                setting.maxX,
+                setting.minY,
+                setting.maxY
+            );
+
             test.ok(Math.abs(have - setting.need) < ns[j][1], 'Error is not acceptable.');
+            test.ok(Math.abs(have2 - setting.need) < ns[j][1], 'Error is not acceptable.');
+            test.ok(Math.abs(have - have2) < 1e-12, 'Assembler does not work.');
         }
     }
 

@@ -35,7 +35,7 @@ exports['Simple Composite Sorter'] = function (test) {
 
     var SorterCompiled = compiler.compile(SorterParsed);
     var Sorter = assembler.assemble(SorterCompiled);
-    fs.writeFileSync('sorter_composite.json', JSON.stringify(SorterCompiled, null, 2));
+    // fs.writeFileSync('sorter_composite.json', JSON.stringify(SorterCompiled, null, 2));
 
     for (var i = 0; i < arrays.length; i++) {
         Sorter.sort(arrays[i][0]);
@@ -64,7 +64,7 @@ exports['Simpler Monolithic Sorter'] = function (test) {
 
     var SorterCompiled = compiler.compile(SorterParsed);
     var Sorter = assembler.assemble(SorterCompiled);
-    fs.writeFileSync('sorter_monolithic.json', JSON.stringify(SorterCompiled, null, 2));
+    // fs.writeFileSync('sorter_monolithic.json', JSON.stringify(SorterCompiled, null, 2));
 
     for (var i = 0; i < arrays.length; i++) {
         Sorter.sort(arrays[i][0]);
@@ -126,8 +126,9 @@ exports['Sequencer Processing'] = function (test) {
 
     // compiler
 
-    var SequencerCompiled = compiler.compile(SequencerParsed);
-    fs.writeFileSync('sequencer.json', JSON.stringify(SequencerCompiled, null, 2));
+    var compilation = compiler.compile.bind(compiler, SequencerParsed);
+    test.doesNotThrow(compilation);
+    // fs.writeFileSync('sequencer.json', JSON.stringify(SequencerCompiled, null, 2));
 
     test.done();
 };
@@ -150,7 +151,6 @@ exports['Fusion of Sequencer and Monolithic Sorter'] = function (test) {
 
     var SequencerParsed = parser.parse(SequencerScript, 'Sequencer');
     var SorterParsed = parser.parse(SorterScript, 'Sorter');
-
 
     // compiler
 
@@ -183,7 +183,6 @@ exports['Fusion of Sequencer and Composite Sorter'] = function (test) {
 
     var SequencerParsed = parser.parse(SequencerScript, 'Sequencer');
     var SorterParsed = parser.parse(SorterScript, 'Sorter');
-
 
     // compiler
 
