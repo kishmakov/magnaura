@@ -1,4 +1,5 @@
-public mesh1D(n, minX, maxX) {
+public mesh1D(gridsize, minX, maxX) {
+	var n = Math.max(gridsize - 1, 1);
     var h = (maxX - minX) / n;
     var m1 = [];
 

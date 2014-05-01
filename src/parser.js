@@ -569,28 +569,28 @@
 
         if (token.type === Token.BooleanLiteral) {
             return {
-                type: Syntax.Literal,
+                type: Syntax.UnquotedLiteral,
                 value: (token.value === 'true')
             };
         }
 
         if (token.type === Token.NullLiteral) {
             return {
-                type: Syntax.Literal,
+                type: Syntax.UnquotedLiteral,
                 value: null
             };
         }
 
         if (token.type === Token.NumericLiteral) {
             return {
-                type: Syntax.Literal,
+                type: Syntax.UnquotedLiteral,
                 value: token.value
             };
         }
 
         if (token.type === Token.StringLiteral) {
             return {
-                type: Syntax.Literal,
+                type: Syntax.QuotedLiteral,
                 value: token.value
             };
         }

@@ -63,6 +63,16 @@
         }
     }
 
+    function QuotesWrapper(func) {
+        return function (object) {
+            var result = func(object);
+            for (var i = 0, len = result.length; i < len; i++) {
+                result[i] = '\'' + result[i] + '\'';
+            }
+            return result;
+        }
+    }
+
     function toString(result) {
         if (!(result instanceof Array)) {
             throw {
@@ -465,8 +475,9 @@
             ArrayExpression: stringifyArrayInitializer,
             FunctionExpression: stringifyFunctionExpression,
             Identifier: IdentifierProcessor(GetterFunctional('name')),
-            Literal: GetterFunctional('value'),
-            ObjectExpression: stringifyObjectInitializer
+            ObjectExpression: stringifyObjectInitializer,
+            QuotedLiteral: QuotesWrapper(GetterFunctional('value')),
+            UnquotedLiteral: GetterFunctional('value')
         };
 
         var result;

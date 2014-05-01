@@ -1,16 +1,13 @@
-public mesh2D(n, minX, maxX, minY, maxY) {
+public mesh2D(gridsize, minX, maxX, minY, maxY) {
+    var n = Math.max(2, Math.floor(Math.sqrt(gridsize)));
     var m1x = mesh1D(n, minX, maxX);
-    var m1y = mesh1D(n, minY, maxY);
+    var m1y = mesh1D(n, minY, maxY);    
 
-    var xlen = m1x.length;
-    var ylen = m1y.length;
-    var w2;
+    var m2 = [], nx = m1x.length, ny = m1y.length;
 
-    var m2 = [];
-
-    for (var i = 0; i < xlen; i++) {
-        for (var j = 0; j < ylen; j++) {
-            w2 = m1x[i].weight * m1y[j].weight;
+    for (var i = 0; i < nx; i++) {
+        for (var j = 0; j < ny; j++) {
+            var w2 = m1x[i].weight * m1y[j].weight;
             m2.push({x: m1x[i].x, y: m1y[j].x, weight: w2});
         }
     }
