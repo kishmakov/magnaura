@@ -140,8 +140,8 @@ exports['PreMesher2D Processing'] = function (test) {
 
     var compilation = compiler.compile.bind(compiler, PreMesherParsed);
     test.doesNotThrow(compilation);
-//    var PreMesherCompiled = compiler.compile(PreMesherParsed);
-//    fs.writeFileSync('PreMesher2D.json', JSON.stringify(PreMesherCompiled, null, 2));
+    var PreMesherCompiled = compilation();
+    fs.writeFileSync('PreMesher2D.json', JSON.stringify(PreMesherCompiled, null, 2));
 
     test.done();
 };
@@ -174,89 +174,60 @@ exports['PreIntegrator Processing'] = function (test) {
     test.done();
 };
 
-exports['Integrators Simple creation'] = function (test) {
+exports['Integrators Creation'] = function (test) {
     var Mesher1DSimpleScript = fs.readFileSync('./data/test02/Mesher1DSimple.ks').toString();
-    var PreMesher2DScript = fs.readFileSync('./data/test02/PreMesher2D.ks').toString();
-    var PreIntegratorScript = fs.readFileSync('./data/test02/PreIntegrator.ks').toString();
-
-    // parser
-
-    var Mesher1DSimpleParsed = parser.parse(Mesher1DSimpleScript, 'Mesher1DSimple');
-    var PreMesher2DParsed = parser.parse(PreMesher2DScript, 'PreMesher2D');
-    var PreIntegratorParsed = parser.parse(PreIntegratorScript, 'PreIntegrator');
-
-    // compiler
-
-    var Mesher1DSimpleCompiled = compiler.compile(Mesher1DSimpleParsed);
-    var PreMesher2DCompiled = compiler.compile(PreMesher2DParsed);
-    var PreIntegratorCompiled = compiler.compile(PreIntegratorParsed);
-
-    // assembler & disassembler
-
-    var Mesher1DSimple = assembler.assemble(Mesher1DSimpleCompiled);
-    var PreMesher2D = assembler.assemble(PreMesher2DCompiled);
-    var PreIntegrator = assembler.assemble(PreIntegratorCompiled);
-
-    var Mesher2D = PreMesher2D.Mesher2D(Mesher1DSimple);
-    test.equal(PreMesher2D.hash, Mesher2D.hash);
-
-    var Integrator = PreIntegrator.Integrator(Mesher2D);
-    test.equal(PreIntegrator.hash, Integrator.hash);
-
-    var IntegratorCompiled = assembler.disassemble(Integrator);
-    test.equal(IntegratorCompiled.public.length, 1);
-    test.equal(IntegratorCompiled.private.length, 2);
-    fs.writeFileSync('IntegratorSimple.json', JSON.stringify(IntegratorCompiled, null, 2));
-
-    var Integrator2 = assembler.assemble(IntegratorCompiled);
-
-    // integrators test
-
-    check(Integrator, Integrator2, test);
-
-    test.done();
-};
-
-exports['Integrators Simpson creation'] = function (test) {
     var Mesher1DSimpsonScript = fs.readFileSync('./data/test02/Mesher1DSimpson.ks').toString();
     var PreMesher2DScript = fs.readFileSync('./data/test02/PreMesher2D.ks').toString();
     var PreIntegratorScript = fs.readFileSync('./data/test02/PreIntegrator.ks').toString();
 
     // parser
 
+    var Mesher1DSimpleParsed = parser.parse(Mesher1DSimpleScript, 'Mesher1DSimple');
     var Mesher1DSimpsonParsed = parser.parse(Mesher1DSimpsonScript, 'Mesher1DSimpson');
     var PreMesher2DParsed = parser.parse(PreMesher2DScript, 'PreMesher2D');
     var PreIntegratorParsed = parser.parse(PreIntegratorScript, 'PreIntegrator');
 
     // compiler
 
+    var Mesher1DSimpleCompiled = compiler.compile(Mesher1DSimpleParsed);
     var Mesher1DSimpsonCompiled = compiler.compile(Mesher1DSimpsonParsed);
     var PreMesher2DCompiled = compiler.compile(PreMesher2DParsed);
     var PreIntegratorCompiled = compiler.compile(PreIntegratorParsed);
 
     // assembler & disassembler
 
+    var Mesher1DSimple = assembler.assemble(Mesher1DSimpleCompiled);
     var Mesher1DSimpson = assembler.assemble(Mesher1DSimpsonCompiled);
     var PreMesher2D = assembler.assemble(PreMesher2DCompiled);
     var PreIntegrator = assembler.assemble(PreIntegratorCompiled);
 
-    var Mesher2D = PreMesher2D.Mesher2D(Mesher1DSimpson);
-    test.equal(PreMesher2D.hash, Mesher2D.hash);
+    var Mesher2DSimple = PreMesher2D.Mesher2D(Mesher1DSimple);
+    test.equal(PreMesher2D.hash, Mesher2DSimple.hash);
+    var Mesher2DSimpson = PreMesher2D.Mesher2D(Mesher1DSimpson);
+    test.equal(PreMesher2D.hash, Mesher2DSimpson.hash);
 
-    var Integrator = PreIntegrator.Integrator(Mesher2D);
-    test.equal(PreIntegrator.hash, Integrator.hash);
+    var IntegratorSimple1 = PreIntegrator.Integrator(Mesher2DSimple);
+    test.equal(PreIntegrator.hash, IntegratorSimple1.hash);
+    var IntegratorSimpson1 = PreIntegrator.Integrator(Mesher2DSimpson);
+    test.equal(PreIntegrator.hash, IntegratorSimpson1.hash);
 
-    var IntegratorCompiled = assembler.disassemble(Integrator);
-    test.equal(IntegratorCompiled.public.length, 1);
-    test.equal(IntegratorCompiled.private.length, 2);
-    fs.writeFileSync('IntegratorSimpson.json', JSON.stringify(IntegratorCompiled, null, 2));
+    var IntegratorSimpleCompiled = assembler.disassemble(IntegratorSimple1);
+    test.equal(IntegratorSimpleCompiled.public.length, 1);
+    test.equal(IntegratorSimpleCompiled.private.length, 2);
+//    fs.writeFileSync('IntegratorSimple.json', JSON.stringify(IntegratorSimpleCompiled, null, 2));
 
-    var Integrator2 = assembler.assemble(IntegratorCompiled);
+    var IntegratorSimpsonCompiled = assembler.disassemble(IntegratorSimpson1);
+    test.equal(IntegratorSimpsonCompiled.public.length, 1);
+    test.equal(IntegratorSimpsonCompiled.private.length, 2);
+//    fs.writeFileSync('IntegratorSimpson.json', JSON.stringify(IntegratorSimpsonCompiled, null, 2));
+
+    var IntegratorSimple2 = assembler.assemble(IntegratorSimpleCompiled);
+    var IntegratorSimpson2 = assembler.assemble(IntegratorSimpsonCompiled);
 
     // integrators test
 
-    check(Integrator, Integrator2, test);
+    check(IntegratorSimple1, IntegratorSimple2, test);
+    check(IntegratorSimpson1, IntegratorSimpson2, test);
 
     test.done();
 };
-

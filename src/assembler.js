@@ -79,6 +79,26 @@
         }
     }
 
+    function cloneFunction(record) {
+        var result = {
+            arguments: [],
+            body: [],
+            name: record.name
+        };
+
+        var i, len;
+
+        for (i = 0, len = record.arguments.length; i < len; i++) {
+            result.arguments.push(record.arguments[i]);
+        }
+
+        for (i = 0, len = record.body.length; i < len; i++) {
+            result.body.push(record.body[i]);
+        }
+
+        return result;
+    }
+
 // compilation
 
     exports.assemble = function (compiled) {
@@ -103,24 +123,22 @@
         prototype.fusionCopy = function (fusionName) {
             var result = {
                 description: {name: fusionName},
-                public: this.public,
-                private: this.private,
-                fusion: []
+                hash: this.hash,
+                fusionCopy: this.fusionCopy,
+                fusionAccumulate: this.fusionAccumulate,
+                fusionFinalize: this.fusionFinalize
             };
             result.description['mother'] = this.description;
             result.description['fathers'] = [];
 
-            result['hash'] = this.hash;
-            result.fusionCopy = this.fusionCopy;
-            result.fusionAccumulate = this.fusionAccumulate;
-            result.fusionFinalize = this.fusionFinalize;
-
-            for (var i = 0, len = this.fusion.length; i < len; i++) {
-                if (this.fusion[i].name === fusionName) {
-                    continue;
+            for (var specifier in Specifiers) {
+                result[specifier] = [];
+                for (var i = 0, len = this[specifier].length; i < len; i++) {
+                    if (specifier === 'fusion' && this[specifier][i].name === fusionName) {
+                        continue; // skip fusion through which object is created
+                    }
+                    result[specifier].push(cloneFunction(this[specifier][i]));
                 }
-
-                result.fusion.push(this.fusion[i]);
             }
 
             return result;
