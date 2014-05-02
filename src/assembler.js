@@ -9,9 +9,10 @@
 // stuff
 
     function assembleBody(body) {
+        var pattern = new RegExp('\\\\t', 'g');
         var result = '';
-        for (var i = 0; i < body.length; i++) {
-            result += body[i].trim();
+        for (var i = 1; i < body.length - 1; i++) {
+            result += body[i].replace(pattern, '  ') + '\n';
         }
 
         return result;

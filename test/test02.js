@@ -140,8 +140,8 @@ exports['PreMesher2D Processing'] = function (test) {
 
     var compilation = compiler.compile.bind(compiler, PreMesherParsed);
     test.doesNotThrow(compilation);
-    var PreMesherCompiled = compilation();
-    fs.writeFileSync('PreMesher2D.json', JSON.stringify(PreMesherCompiled, null, 2));
+//    var PreMesherCompiled = compilation();
+//    fs.writeFileSync('PreMesher2D.json', JSON.stringify(PreMesherCompiled, null, 2));
 
     test.done();
 };
