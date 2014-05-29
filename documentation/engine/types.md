@@ -1,6 +1,6 @@
 # Kitchen Types Representation
 
-## Primitive Types and lists
+## Primitive Types and Lists
 
 There are number of primitive types in Kitchen Script.
 
