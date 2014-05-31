@@ -1,4 +1,6 @@
-# Kitchen Project Introduction
+# Kitchen Computational System
+
+See more detailed documentation at [prject wiki](wiki).
 
 ## Name and Meta Ideology
 
