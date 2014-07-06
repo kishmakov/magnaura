@@ -19,7 +19,7 @@
         <y:ShapeNode>
           <y:Geometry height="25.0" width="50.0" x="-207.5" y="-102.0"/>
           <y:Fill color="#BA0E09" transparent="false"/>
-          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:BorderStyle color="#BA0E09" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="87.8125" modelName="custom" textColor="#000000" visible="true" width="18.736328125" x="15.6318359375" y="-31.40625">x1
 
 
@@ -114,7 +114,7 @@
         <y:ShapeNode>
           <y:Geometry height="25.0" width="50.0" x="40.0" y="-102.0"/>
           <y:Fill color="#BA0E09" transparent="false"/>
-          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:BorderStyle color="#BA0E09" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="87.8125" modelName="custom" textColor="#000000" visible="true" width="18.736328125" x="15.6318359375" y="-31.40625">x2
 
 
@@ -137,7 +137,7 @@
         <y:ShapeNode>
           <y:Geometry height="25.0" width="50.0" x="77.0" y="147.0"/>
           <y:Fill color="#FFBF00" transparent="false"/>
-          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:BorderStyle color="#FFBF00" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="45.90625" modelName="custom" textColor="#000000" visible="true" width="104.787109375" x="-27.3935546875" y="-10.453125">
 
                         D<y:LabelModel>
@@ -194,7 +194,7 @@ x2 = num / den<y:LabelModel>
         <y:ShapeNode>
           <y:Geometry height="25.0" width="50.0" x="77.0" y="172.0"/>
           <y:Fill color="#BA0E09" transparent="false"/>
-          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:BorderStyle color="#BA0E09" type="line" width="1.0"/>
           <y:Shape type="trapezoid2"/>
         </y:ShapeNode>
       </data>
@@ -204,7 +204,7 @@ x2 = num / den<y:LabelModel>
         <y:ShapeNode>
           <y:Geometry height="25.0" width="50.0" x="-235.0" y="304.5"/>
           <y:Fill color="#FFBF00" transparent="false"/>
-          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:BorderStyle color="#FFBF00" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="87.8125" modelName="custom" textColor="#000000" visible="true" width="11.353515625" x="19.3232421875" y="-31.40625">
 
 
@@ -226,7 +226,7 @@ a<y:LabelModel>
         <y:ShapeNode>
           <y:Geometry height="25.0" width="50.0" x="-79.0" y="304.5"/>
           <y:Fill color="#FFBF00" transparent="false"/>
-          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:BorderStyle color="#FFBF00" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="87.8125" modelName="custom" textColor="#000000" visible="true" width="11.6171875" x="19.19140625" y="-31.40625">
 
 
@@ -265,7 +265,7 @@ b<y:LabelModel>
         <y:ShapeNode>
           <y:Geometry height="25.0" width="50.0" x="77.0" y="304.5"/>
           <y:Fill color="#FFBF00" transparent="false"/>
-          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:BorderStyle color="#FFBF00" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="87.8125" modelName="custom" textColor="#000000" visible="true" width="10.59765625" x="19.701171875" y="-31.40625">
 
 
@@ -278,6 +278,83 @@ c<y:LabelModel>
               <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
             </y:ModelParameter>
           </y:NodeLabel>
+          <y:Shape type="trapezoid"/>
+        </y:ShapeNode>
+      </data>
+    </node>
+    <node id="n14">
+      <data key="d6">
+        <y:ShapeNode>
+          <y:Geometry height="18.0" width="36.0" x="-200.5" y="-98.5"/>
+          <y:Fill color="#FFFFFF" transparent="false"/>
+          <y:BorderStyle color="#FFFFFF" type="line" width="1.0"/>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="4.0" x="16.0" y="7.0"/>
+          <y:Shape type="trapezoid2"/>
+        </y:ShapeNode>
+      </data>
+    </node>
+    <node id="n15">
+      <data key="d6">
+        <y:ShapeNode>
+          <y:Geometry height="18.0" width="36.0" x="47.0" y="-98.5"/>
+          <y:Fill color="#FFFFFF" transparent="false"/>
+          <y:BorderStyle color="#FFFFFF" type="line" width="1.0"/>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="4.0" x="16.0" y="7.0"/>
+          <y:Shape type="trapezoid2"/>
+        </y:ShapeNode>
+      </data>
+    </node>
+    <node id="n16">
+      <data key="d6">
+        <y:ShapeNode>
+          <y:Geometry height="18.0" width="36.0" x="84.0" y="175.5"/>
+          <y:Fill color="#FFFFFF" transparent="false"/>
+          <y:BorderStyle color="#FFFFFF" type="line" width="1.0"/>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="4.0" x="16.0" y="7.0"/>
+          <y:Shape type="trapezoid2"/>
+        </y:ShapeNode>
+      </data>
+    </node>
+    <node id="n17">
+      <data key="d6">
+        <y:ShapeNode>
+          <y:Geometry height="18.0" width="36.0" x="84.0" y="150.5"/>
+          <y:Fill color="#FFFFFF" transparent="false"/>
+          <y:BorderStyle color="#FFFFFF" type="line" width="1.0"/>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="4.0" x="16.0" y="7.0"/>
+          <y:Shape type="trapezoid"/>
+        </y:ShapeNode>
+      </data>
+    </node>
+    <node id="n18">
+      <data key="d6">
+        <y:ShapeNode>
+          <y:Geometry height="18.0" width="36.0" x="-228.0" y="308.0"/>
+          <y:Fill color="#FFFFFF" transparent="false"/>
+          <y:BorderStyle color="#FFFFFF" type="line" width="1.0"/>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="4.0" x="16.0" y="7.0"/>
+          <y:Shape type="trapezoid"/>
+        </y:ShapeNode>
+      </data>
+    </node>
+    <node id="n19">
+      <data key="d6">
+        <y:ShapeNode>
+          <y:Geometry height="18.0" width="36.0" x="-72.0" y="308.0"/>
+          <y:Fill color="#FFFFFF" transparent="false"/>
+          <y:BorderStyle color="#FFFFFF" type="line" width="1.0"/>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="4.0" x="16.0" y="7.0"/>
+          <y:Shape type="trapezoid"/>
+        </y:ShapeNode>
+      </data>
+    </node>
+    <node id="n20">
+      <data key="d6">
+        <y:ShapeNode>
+          <y:Geometry height="18.0" width="36.0" x="84.0" y="308.0"/>
+          <y:Fill color="#FFFFFF" transparent="false"/>
+          <y:BorderStyle color="#FFFFFF" type="line" width="1.0"/>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" hasText="false" height="4.0" modelName="internal" modelPosition="c" textColor="#000000" visible="true" width="4.0" x="16.0" y="7.0"/>
           <y:Shape type="trapezoid"/>
         </y:ShapeNode>
       </data>
@@ -375,7 +452,6 @@ c<y:LabelModel>
       </data>
     </edge>
     <edge id="e8" source="n12" target="n9">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="37.0" sy="-5.0" tx="0.0" ty="0.0"/>
@@ -386,7 +462,6 @@ c<y:LabelModel>
       </data>
     </edge>
     <edge id="e9" source="n13" target="n12">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="37.0" ty="15.9921875"/>
@@ -397,7 +472,6 @@ c<y:LabelModel>
       </data>
     </edge>
     <edge id="e10" source="n11" target="n12">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0">
@@ -411,7 +485,6 @@ c<y:LabelModel>
       </data>
     </edge>
     <edge id="e11" source="n10" target="n12">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="-30.5" ty="0.0">
