@@ -1,0 +1,1 @@
+rootProject.name = "kitchen-jvm-client"
