@@ -1,23 +1,45 @@
 package org.kshmakov.kitchen
 
-import io.ktor.application.*
-import io.ktor.response.*
-import io.ktor.request.*
-import io.ktor.routing.*
-import io.ktor.http.*
-import io.ktor.html.*
-import kotlinx.html.*
-import io.ktor.content.*
-import io.ktor.http.content.*
-import io.ktor.locations.*
-import io.ktor.client.*
+import io.ktor.application.Application
+import io.ktor.application.call
+import io.ktor.application.install
+import io.ktor.client.HttpClient
+import io.ktor.features.ContentNegotiation
+import io.ktor.html.respondHtml
+import io.ktor.http.ContentType
+import io.ktor.http.content.resources
+import io.ktor.http.content.static
+import io.ktor.jackson.jackson
+import io.ktor.locations.Location
+import io.ktor.locations.Locations
+import io.ktor.locations.get
+import io.ktor.request.receive
+import io.ktor.response.respond
+import io.ktor.response.respondText
+import io.ktor.routing.get
+import io.ktor.routing.post
+import io.ktor.routing.routing
+import kotlinx.html.body
+import kotlinx.html.h1
+import kotlinx.html.li
+import kotlinx.html.ul
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
+
+data class PostSnippet(val snippet: PostSnippet.Text) {
+    data class Text(val text: String)
+}
 
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
     install(Locations) {
+    }
+
+    install(ContentNegotiation) {
+        jackson {
+            // Configure Jackson's ObjectMapper here
+        }
     }
 
     val client = HttpClient() {
@@ -39,6 +61,12 @@ fun Application.module(testing: Boolean = false) {
                     }
                 }
             }
+        }
+
+        post("/snippets") {
+            val post = call.receive<PostSnippet>()
+            println("Received: text = ${post.snippet.text}")
+            call.respond(mapOf("OK" to true))
         }
 
         // Static feature. Try to access `/static/ktor_logo.svg`
