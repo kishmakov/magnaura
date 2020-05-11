@@ -1,4 +1,4 @@
-package org.kshmakov.kitchen
+package org.kshmakov.kitchen.compiler
 
 import com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys

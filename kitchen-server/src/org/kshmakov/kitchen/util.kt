@@ -6,6 +6,7 @@ import com.intellij.psi.impl.PsiFileFactoryImpl
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtFile
+import org.kshmakov.kitchen.compiler.KOTLIN_CORE_ENVIRONMENT
 
 fun text(): String {
     return "Label text"

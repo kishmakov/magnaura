@@ -23,6 +23,7 @@ import kotlinx.html.body
 import kotlinx.html.h1
 import kotlinx.html.li
 import kotlinx.html.ul
+import org.kshmakov.kitchen.compiler.KotlinCompiler
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -61,10 +62,8 @@ fun Application.module(testing: Boolean = false) {
 
         post("/compiler") {
             val project = call.receive<Project>()
-            for (file in project.files) {
-                val ktFile = kotlinFile(file.name, file.text)
-            }
-            println("Received ${project.files.size} files")
+            val compilation = KotlinCompiler.INSTANCE.compile(project.files.map { kotlinFile(it.name, it.text) })
+            println("Received ${project.files.size} files, got ${compilation.files.size} after compilation.")
             call.respond(mapOf("OK" to true))
         }
 
