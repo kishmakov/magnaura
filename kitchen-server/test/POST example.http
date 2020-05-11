@@ -1,4 +1,12 @@
-POST http://127.0.0.1:8080/snippets
+POST http://127.0.0.1:8080/compiler
 Content-Type: application/json
+Connection: close
 
-{"snippet": {"text" : "mysnippet"}}
+{
+  "files": [
+    {
+      "name": "File.kt",
+      "text": "fun main(args: Array<String>) {\n    println(\"Hello world.\")\n}"
+    }
+  ]
+}

@@ -26,10 +26,6 @@ import kotlinx.html.ul
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-data class PostSnippet(val snippet: PostSnippet.Text) {
-    data class Text(val text: String)
-}
-
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
@@ -63,9 +59,12 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
-        post("/snippets") {
-            val post = call.receive<PostSnippet>()
-            println("Received: text = ${post.snippet.text}")
+        post("/compiler") {
+            val project = call.receive<Project>()
+            for (file in project.files) {
+                val ktFile = kotlinFile(file.name, file.text)
+            }
+            println("Received ${project.files.size} files")
             call.respond(mapOf("OK" to true))
         }
 
