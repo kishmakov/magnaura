@@ -23,6 +23,7 @@ import kotlinx.html.body
 import kotlinx.html.h1
 import kotlinx.html.li
 import kotlinx.html.ul
+import org.kshmakov.kitchen.compiler.KotlinEnvironment
 import org.kshmakov.kitchen.compiler.KotlinCompiler
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -41,6 +42,8 @@ fun Application.module(testing: Boolean = false) {
 
     val client = HttpClient() {
     }
+
+    KotlinEnvironment.setClasspath(environment.config.property("libraries.folder.jvm")?.getString())
 
     routing {
         get("/") {

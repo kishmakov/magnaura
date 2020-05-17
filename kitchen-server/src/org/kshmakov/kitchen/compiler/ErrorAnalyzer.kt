@@ -19,9 +19,9 @@ class ErrorAnalyzer {
             project = project,
             files = files,
             trace = trace,
-            configuration = KOTLIN_CORE_ENVIRONMENT.configuration,
+            configuration = KotlinEnvironment.coreEnvironment!!.configuration,
             packagePartProvider = { globalSearchScope ->
-                KOTLIN_CORE_ENVIRONMENT.createPackagePartProvider(globalSearchScope)
+                KotlinEnvironment.coreEnvironment!!.createPackagePartProvider(globalSearchScope)
             },
             declarationProviderFactory = { storageManager, ktFiles ->
                 FileBasedDeclarationProviderFactory(storageManager, ktFiles)

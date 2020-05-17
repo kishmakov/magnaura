@@ -29,7 +29,7 @@ class KotlinCompiler(private val errorAnalyzer: ErrorAnalyzer) {
             analysis.analysisResult.moduleDescriptor,
             analysis.analysisResult.bindingContext,
             files,
-            KOTLIN_CORE_ENVIRONMENT.configuration
+            KotlinEnvironment.coreEnvironment!!.configuration
         ).build()
     }
 

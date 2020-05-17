@@ -6,14 +6,14 @@ import com.intellij.psi.impl.PsiFileFactoryImpl
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtFile
-import org.kshmakov.kitchen.compiler.KOTLIN_CORE_ENVIRONMENT
+import org.kshmakov.kitchen.compiler.KotlinEnvironment
 
 fun text(): String {
     return "Label text"
 }
 
 fun kotlinFile(name: String, content: String): KtFile =
-    (PsiFileFactory.getInstance(KOTLIN_CORE_ENVIRONMENT.project) as PsiFileFactoryImpl)
+    (PsiFileFactory.getInstance(KotlinEnvironment.coreEnvironment!!.project) as PsiFileFactoryImpl)
         .trySetupPsiForFile(
             LightVirtualFile(
                 if (name.endsWith(".kt")) name else "$name.kt",

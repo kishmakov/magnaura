@@ -11,6 +11,7 @@ buildscript {
 }
 
 val kotlin_version: String by project
+val jvmLibsFolder = kotlin_version
 
 plugins {
     kotlin("jvm")
@@ -25,8 +26,6 @@ val jvmCompilerDependency: Configuration by configurations.creating {
 }
 
 val copyJVMDependencies by tasks.creating(Copy::class) {
-    val jvmLibsFolder = kotlin_version
-
     from(jvmCompilerDependency)
     into(jvmLibsFolder)
 }
@@ -52,10 +51,10 @@ dependencies {
     jvmCompilerDependency("com.fasterxml.jackson.core:jackson-annotations:2.10.0")
 
     // Kotlin libraries
+    jvmCompilerDependency("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4")
     jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
     jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
-    jvmCompilerDependency("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4")
     jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version")
 
     implementation("ch.qos.logback:logback-classic:$logback_version")
@@ -70,9 +69,10 @@ dependencies {
     implementation("io.ktor:ktor-jackson:$ktor_version")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4")
-
     implementation("org.jetbrains.kotlin:kotlin-compiler:$kotlin_version")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
 
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
 }
@@ -89,6 +89,32 @@ sourceSets {
     }
 }
 
+fun generateConfig(): String {
+    val port = "\${?PORT}"
+    return """
+    ktor {
+        deployment {
+            port = 8080
+            port = $port
+        }
+        application {
+            modules = [ org.kshmakov.kitchen.ApplicationKt.module ]
+        }
+    }
+
+    libraries.folder.jvm : $jvmLibsFolder 
+    """.trimIndent()
+}
+
+fun buildConfigFile() {
+    rootDir.resolve("resources/application.conf").apply{
+        println("Generate config into $absolutePath")
+        parentFile.mkdirs()
+        writeText(generateConfig())
+    }
+}
+
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     dependsOn(copyJVMDependencies)
+    buildConfigFile()
 }
