@@ -7,6 +7,8 @@ import io.ktor.client.HttpClient
 import io.ktor.features.ContentNegotiation
 import io.ktor.html.respondHtml
 import io.ktor.http.ContentType
+import io.ktor.http.content.ByteArrayContent
+import io.ktor.http.content.LocalFileContent
 import io.ktor.http.content.resources
 import io.ktor.http.content.static
 import io.ktor.jackson.jackson
@@ -25,6 +27,8 @@ import kotlinx.html.li
 import kotlinx.html.ul
 import org.kshmakov.kitchen.compiler.KotlinEnvironment
 import org.kshmakov.kitchen.compiler.KotlinCompiler
+import org.kshmakov.kitchen.storage.Storage
+import java.io.File
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -66,8 +70,15 @@ fun Application.module(testing: Boolean = false) {
         post("/compiler") {
             val project = call.receive<Project>()
             val compilation = KotlinCompiler.INSTANCE.compile(project.files.map { kotlinFile(it.name, it.text) })
-            println("Received ${project.files.size} files, got ${compilation.files.size} after compilation.")
-            call.respond(mapOf("OK" to true))
+
+            val responseMap = hashMapOf<String, Int>()
+
+            for ((name, bytes) in compilation.files) {
+                val index = Storage.registerClass(bytes)
+                responseMap[name] = index
+            }
+
+            call.respond(responseMap)
         }
 
         // Static feature. Try to access `/static/ktor_logo.svg`
@@ -75,8 +86,9 @@ fun Application.module(testing: Boolean = false) {
             resources("static")
         }
 
-        get<MyLocation> {
-            call.respondText("Location: name=${it.name}, arg1=${it.arg1}, arg2=${it.arg2}")
+        get<ClassRequest> {
+            val message = ByteArrayContent(Storage.getClassBytes(it.index), ContentType.Application.OctetStream)
+            call.respond(message)
         }
         // Register nested routes
         get<Type.Edit> {
@@ -88,8 +100,8 @@ fun Application.module(testing: Boolean = false) {
     }
 }
 
-@Location("/location/{name}")
-class MyLocation(val name: String, val arg1: Int = 42, val arg2: String = "default")
+@Location("/file/{index}")
+data class ClassRequest(val index: Int)
 
 @Location("/type/{name}") data class Type(val name: String) {
     @Location("/edit")
