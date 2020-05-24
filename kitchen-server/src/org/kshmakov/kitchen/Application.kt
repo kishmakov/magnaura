@@ -32,6 +32,13 @@ import java.io.File
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
+class ByteArrayClassLoader(val bytes: ByteArray) : ClassLoader() {
+
+    override fun findClass(name: String): Class<*> {
+        return defineClass("FileKt", bytes,0, bytes.size);
+    }
+}
+
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
@@ -76,7 +83,17 @@ fun Application.module(testing: Boolean = false) {
             for ((name, bytes) in compilation.files) {
                 val index = Storage.registerClass(bytes)
                 responseMap[name] = index
+
+//                if (name.endsWith(".class")) {
+//                    val cl = ByteArrayClassLoader(bytes)
+//                    val klass = cl.loadClass(name)
+//                    val method = klass.getMethod("main", Array<String>::class.java)
+//                    val method = klass.getMethod("say", Array<String>::class.java)
+//                    val obj = method.invoke(null, emptyArray<String>())
+//                }
             }
+
+            println("Get some request")
 
             call.respond(responseMap)
         }

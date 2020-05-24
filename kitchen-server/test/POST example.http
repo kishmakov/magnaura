@@ -6,7 +6,7 @@ Connection: close
   "files": [
     {
       "name": "File.kt",
-      "text": "fun main(args: Array<String>) {\n    println(\"Hello world.\")\n}"
+      "text": "fun say(args: Array<String>): String {\n  return \"239\"\n}\n fun main(args: Array<String>) {\n    println(\"Hello world.\")\n}"
     }
   ]
 }
