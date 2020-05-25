@@ -18,9 +18,6 @@ plugins {
     application
 }
 
-group = "org.kshmakov.kitchen"
-version = "0.0.1"
-
 val jvmCompilerDependency: Configuration by configurations.creating {
     isTransitive = false
 }
@@ -102,12 +99,12 @@ fun generateConfig(): String {
         }
     }
 
-    libraries.folder.jvm : $jvmLibsFolder 
+    libraries.folder.jvm : $projectDir/$jvmLibsFolder 
     """.trimIndent()
 }
 
 fun buildConfigFile() {
-    rootDir.resolve("resources/application.conf").apply{
+    projectDir.resolve("resources/application.conf").apply{
         println("Generate config into $absolutePath")
         parentFile.mkdirs()
         writeText(generateConfig())

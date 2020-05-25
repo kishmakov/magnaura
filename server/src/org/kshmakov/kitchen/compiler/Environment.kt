@@ -20,6 +20,7 @@ object KotlinEnvironment {
 
     fun setClasspath(directory: String) {
         val arguments = K2JVMCompilerArguments()
+        println(">>> path of " + File(directory).absoluteFile)
         val classpath = File(directory).listFiles().filter { it.exists() && it.isFile && it.extension == "jar" }
         coreEnvironment = KotlinCoreEnvironment.createForTests(
                 parentDisposable = Disposable {},

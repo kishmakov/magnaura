@@ -1,10 +1,8 @@
-# Kitchen Computational Platform
+# Magnaura Computational Platform
 
-Kitchen is a computational platform intended to provide transparent and 
+Magnaura is a computational platform intended to provide transparent and 
 intuitive interface for storage and usage of computational algorithms.
 
-At current stage of development project is intentionally licensed under industry 
-hostile [GNU GPL version 3](LICENSE.md). Please, [contact me](https://github.com/kishmakov) if you consider this 
-license extremely restrictive.
+Currently it is intentionally licensed under [GNU GPL version 3](LICENSE.md).
 
 See more detailed documentation at [prject wiki](../../wiki/Kitchen-Computational-Platform).

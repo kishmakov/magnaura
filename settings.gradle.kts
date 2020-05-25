@@ -14,4 +14,8 @@ pluginManagement {
     }
 }
 
-rootProject.name = "kitchen-server"
+include(":server")
+
+rootProject.name = "magnaura"
+
+project(":server").projectDir = File("$rootDir/server")

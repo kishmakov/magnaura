@@ -54,6 +54,8 @@ fun Application.module(testing: Boolean = false) {
     val client = HttpClient() {
     }
 
+    println(">>> get " + environment.config.property("libraries.folder.jvm")?.getString())
+
     KotlinEnvironment.setClasspath(environment.config.property("libraries.folder.jvm")?.getString())
 
     routing {
