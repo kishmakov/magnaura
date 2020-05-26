@@ -8,7 +8,6 @@ import io.ktor.features.ContentNegotiation
 import io.ktor.html.respondHtml
 import io.ktor.http.ContentType
 import io.ktor.http.content.ByteArrayContent
-import io.ktor.http.content.LocalFileContent
 import io.ktor.http.content.resources
 import io.ktor.http.content.static
 import io.ktor.jackson.jackson
@@ -21,21 +20,21 @@ import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
+import io.magnaura.protocol.Project
 import kotlinx.html.body
 import kotlinx.html.h1
 import kotlinx.html.li
 import kotlinx.html.ul
-import org.kshmakov.kitchen.compiler.KotlinEnvironment
 import org.kshmakov.kitchen.compiler.KotlinCompiler
+import org.kshmakov.kitchen.compiler.KotlinEnvironment
 import org.kshmakov.kitchen.storage.Storage
-import java.io.File
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 class ByteArrayClassLoader(val bytes: ByteArray) : ClassLoader() {
 
     override fun findClass(name: String): Class<*> {
-        return defineClass("FileKt", bytes,0, bytes.size);
+        return defineClass("FileKt", bytes,0, bytes.size)
     }
 }
 

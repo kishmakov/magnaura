@@ -26,9 +26,6 @@ dependencies {
 
     jvmCompilerDependency("junit:junit:4.12")
     jvmCompilerDependency("org.hamcrest:hamcrest:2.2")
-    jvmCompilerDependency("com.fasterxml.jackson.core:jackson-databind:2.10.0")
-    jvmCompilerDependency("com.fasterxml.jackson.core:jackson-core:2.10.0")
-    jvmCompilerDependency("com.fasterxml.jackson.core:jackson-annotations:2.10.0")
 
     // Kotlin libraries
     jvmCompilerDependency("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_versions")
@@ -47,6 +44,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core-jvm:$ktor_version")
     implementation("io.ktor:ktor-client-apache:$ktor_version")
     implementation("io.ktor:ktor-jackson:$ktor_version")
+    implementation(project(":protocol"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_versions")
     implementation("org.jetbrains.kotlin:kotlin-compiler:$kotlin_version")

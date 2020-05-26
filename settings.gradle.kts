@@ -14,8 +14,10 @@ pluginManagement {
     }
 }
 
+include(":protocol")
 include(":server")
 
 rootProject.name = "magnaura"
 
+project(":protocol").projectDir = File("$rootDir/protocol")
 project(":server").projectDir = File("$rootDir/server")
