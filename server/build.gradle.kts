@@ -1,22 +1,9 @@
-buildscript {
-    val kotlin_version: String by project
-
-    repositories {
-        jcenter()
-    }
-
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
-    }
-}
-
-val kotlin_version: String by project
-val jvmLibsFolder = kotlin_version
-
 plugins {
     kotlin("jvm")
     application
 }
+
+val jvmLibsFolder = project.property("kotlin_in_application") as String
 
 val jvmCompilerDependency: Configuration by configurations.creating {
     isTransitive = false
@@ -31,15 +18,11 @@ application {
     mainClassName = "io.ktor.server.netty.EngineMain"
 }
 
-repositories {
-    mavenLocal()
-    jcenter()
-    maven("https://kotlin.bintray.com/ktor")
-}
-
 dependencies {
+    val kotlin_version: String by project
     val ktor_version: String by project
     val logback_version: String by project
+    val coroutines_versions: String by project
 
     jvmCompilerDependency("junit:junit:4.12")
     jvmCompilerDependency("org.hamcrest:hamcrest:2.2")
@@ -48,7 +31,7 @@ dependencies {
     jvmCompilerDependency("com.fasterxml.jackson.core:jackson-annotations:2.10.0")
 
     // Kotlin libraries
-    jvmCompilerDependency("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4")
+    jvmCompilerDependency("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_versions")
     jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
     jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
@@ -65,7 +48,7 @@ dependencies {
     implementation("io.ktor:ktor-client-apache:$ktor_version")
     implementation("io.ktor:ktor-jackson:$ktor_version")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_versions")
     implementation("org.jetbrains.kotlin:kotlin-compiler:$kotlin_version")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
