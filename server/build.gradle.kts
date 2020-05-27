@@ -67,7 +67,12 @@ sourceSets {
     }
 }
 
-fun generateConfig(): String {
+val applicationProperties = mapOf(
+    "magnaura.jvm.folder" to "$projectDir/$jvmLibsFolder"
+)
+
+
+fun generateConfig(properties: Map<String, String>): String {
     val port = "\${?PORT}"
     return """
     ktor {
@@ -76,19 +81,19 @@ fun generateConfig(): String {
             port = $port
         }
         application {
-            modules = [ org.kshmakov.kitchen.ApplicationKt.module ]
+            modules = [ io.magnaura.server.ApplicationKt.module ]
         }
-    }
+    }     
+    """.trimIndent() + "\n" +
+            properties.map { "${it.key} : ${it.value}" }.joinToString("\n")
 
-    libraries.folder.jvm : $projectDir/$jvmLibsFolder 
-    """.trimIndent()
 }
 
 fun buildConfigFile() {
     projectDir.resolve("resources/application.conf").apply{
         println("Generate config into $absolutePath")
         parentFile.mkdirs()
-        writeText(generateConfig())
+        writeText(generateConfig(applicationProperties))
     }
 }
 
@@ -96,3 +101,12 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     dependsOn(copyJVMDependencies)
     buildConfigFile()
 }
+
+tasks.withType<org.gradle.api.tasks.testing.Test> {
+    dependsOn(copyJVMDependencies)
+    for ((key, value) in applicationProperties) {
+        systemProperty(key, value)
+    }
+
+}
+

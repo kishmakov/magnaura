@@ -1,4 +1,4 @@
-package org.kshmakov.kitchen.compiler
+package io.magnaura.server.compiler
 
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
@@ -16,8 +16,8 @@ class KotlinCompiler(private val errorAnalyzer: ErrorAnalyzer) {
         val generationState = generationStateFor(files)
         KotlinCodegenFacade.compileCorrectFiles(generationState)
         return Compiled(
-            files = generationState.factory.asList().map { it.relativePath to it.asByteArray() }.toMap(),
-            mainClass = mainClassFrom(generationState.bindingContext, files)
+                files = generationState.factory.asList().map { it.relativePath to it.asByteArray() }.toMap(),
+                mainClass = mainClassFrom(generationState.bindingContext, files)
         )
     }
 

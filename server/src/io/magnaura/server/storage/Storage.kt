@@ -1,4 +1,4 @@
-package org.kshmakov.kitchen.storage
+package io.magnaura.server.storage
 
 object Storage {
     private val map: MutableMap<Int, ByteArray> = hashMapOf()

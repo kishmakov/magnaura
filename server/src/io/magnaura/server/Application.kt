@@ -1,4 +1,4 @@
-package org.kshmakov.kitchen
+package io.magnaura.server
 
 import io.ktor.application.Application
 import io.ktor.application.call
@@ -25,9 +25,9 @@ import kotlinx.html.body
 import kotlinx.html.h1
 import kotlinx.html.li
 import kotlinx.html.ul
-import org.kshmakov.kitchen.compiler.KotlinCompiler
-import org.kshmakov.kitchen.compiler.KotlinEnvironment
-import org.kshmakov.kitchen.storage.Storage
+import io.magnaura.server.compiler.KotlinCompiler
+import io.magnaura.server.compiler.KotlinEnvironment
+import io.magnaura.server.storage.Storage
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -53,9 +53,7 @@ fun Application.module(testing: Boolean = false) {
     val client = HttpClient() {
     }
 
-    println(">>> get " + environment.config.property("libraries.folder.jvm")?.getString())
-
-    KotlinEnvironment.setClasspath(environment.config.property("libraries.folder.jvm")?.getString())
+    KotlinEnvironment.setClasspath(environment.config.property("magnaura.jvm.folder")?.getString())
 
     routing {
         get("/") {

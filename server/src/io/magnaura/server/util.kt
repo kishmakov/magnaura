@@ -1,4 +1,4 @@
-package org.kshmakov.kitchen
+package io.magnaura.server
 
 import com.intellij.openapi.vfs.CharsetToolkit
 import com.intellij.psi.PsiFileFactory
@@ -6,7 +6,7 @@ import com.intellij.psi.impl.PsiFileFactoryImpl
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtFile
-import org.kshmakov.kitchen.compiler.KotlinEnvironment
+import io.magnaura.server.compiler.KotlinEnvironment
 
 fun text(): String {
     return "Label text"

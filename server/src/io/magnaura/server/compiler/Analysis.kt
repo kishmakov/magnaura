@@ -1,4 +1,4 @@
-package org.kshmakov.kitchen.compiler
+package io.magnaura.server.compiler
 
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.container.ComponentProvider

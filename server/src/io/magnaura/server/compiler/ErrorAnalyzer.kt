@@ -1,4 +1,4 @@
-package org.kshmakov.kitchen.compiler
+package io.magnaura.server.compiler
 
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.cli.jvm.compiler.CliBindingTrace
@@ -44,8 +44,8 @@ class ErrorAnalyzer {
                 ) != null
             }
         Analysis(
-            componentProvider = componentProvider,
-            analysisResult = AnalysisResult.success(trace.bindingContext, moduleDescriptor)
+                componentProvider = componentProvider,
+                analysisResult = AnalysisResult.success(trace.bindingContext, moduleDescriptor)
         )
     }
 
