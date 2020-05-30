@@ -1,4 +1,4 @@
-package org.kshmakov.kitchen
+package io.magnaura.client.jvm
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.ktor.client.HttpClient
@@ -33,7 +33,10 @@ fun getText(): String {
         }
     }
 
-    val projectFile = ProjectFile(name = "File.kt", text = "fun say(args: Array<String>): String {\n  return \"239\"\n}\n fun main(args: Array<String>) {\n    println(\"Hello world.\")\n}")
+    val projectFile = ProjectFile(
+        name = "File.kt",
+        text = "fun say(args: Array<String>): String {\n  return \"239\"\n}\n fun main(args: Array<String>) {\n    println(\"Hello world.\")\n}"
+    )
 
     val result = runBlocking<String> {
         val message = client.post<HttpResponse> {

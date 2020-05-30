@@ -1,4 +1,4 @@
-package org.kshmakov.kitchen
+package io.magnaura.server
 
 import io.ktor.config.MapApplicationConfig
 import io.ktor.http.*

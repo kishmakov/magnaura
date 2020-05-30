@@ -44,13 +44,12 @@ dependencies {
     implementation("io.ktor:ktor-client-core-jvm:$ktor_version")
     implementation("io.ktor:ktor-client-apache:$ktor_version")
     implementation("io.ktor:ktor-jackson:$ktor_version")
-    implementation(project(":protocol"))
-
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_versions")
     implementation("org.jetbrains.kotlin:kotlin-compiler:$kotlin_version")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+    implementation(project(":protocol"))
 
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
 }
@@ -63,7 +62,7 @@ sourceSets {
 
     test {
         java { srcDir("test") }
-        resources { srcDir("testresources") }
+        resources { srcDirs(emptyList<String>()) }
     }
 }
 
