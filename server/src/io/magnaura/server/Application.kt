@@ -20,6 +20,8 @@ import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
+import io.magnaura.protocol.CompilationResult
+import io.magnaura.protocol.CompiledClass
 import io.magnaura.protocol.Project
 import kotlinx.html.body
 import kotlinx.html.h1
@@ -77,11 +79,11 @@ fun Application.module(testing: Boolean = false) {
             val project = call.receive<Project>()
             val compilation = KotlinCompiler.INSTANCE.compile(project.files.map { kotlinFile(it.name, it.text) })
 
-            val responseMap = hashMapOf<String, Int>()
+            val compiledClasses = ArrayList<CompiledClass>()
 
             for ((name, bytes) in compilation.files) {
                 val index = Storage.registerClass(bytes)
-                responseMap[name] = index
+                compiledClasses.add(CompiledClass(name, index))
 
 //                if (name.endsWith(".class")) {
 //                    val cl = ByteArrayClassLoader(bytes)
@@ -94,7 +96,7 @@ fun Application.module(testing: Boolean = false) {
 
             println("Get some request")
 
-            call.respond(responseMap)
+            call.respond(CompilationResult(compiledClasses))
         }
 
         // Static feature. Try to access `/static/ktor_logo.svg`

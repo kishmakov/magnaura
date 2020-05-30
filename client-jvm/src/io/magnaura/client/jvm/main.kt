@@ -1,30 +1,21 @@
 package io.magnaura.client.jvm
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.ktor.client.HttpClient
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.request.post
 import io.ktor.client.request.url
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.magnaura.protocol.CompilationResult
+import io.magnaura.protocol.Project
+import io.magnaura.protocol.ProjectFile
 import kotlinx.coroutines.runBlocking
 import java.awt.BorderLayout
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class ProjectFile(val text: String = "", val name: String = "")
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class Project(
-        val args: String = "",
-        val files: List<ProjectFile> = listOf()
-)
-
 
 fun getText(): String {
     val client = HttpClient() {
@@ -39,15 +30,15 @@ fun getText(): String {
     )
 
     val result = runBlocking<String> {
-        val message = client.post<HttpResponse> {
+        val result: CompilationResult = client.post {
             url("http://0.0.0.0:8080/compiler")
             contentType(ContentType.Application.Json)
             body = Project(files = listOf(projectFile))
         }
 
-        println("Message from the server: ${message.content.readUTF8Line(10000)}")
+        println("Server send us ${result.files.size} files.")
 
-        "$message"
+        "$result"
     }
 
     client.close()
