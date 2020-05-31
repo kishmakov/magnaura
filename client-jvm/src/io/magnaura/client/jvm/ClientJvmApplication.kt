@@ -8,24 +8,15 @@ import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.magnaura.platform.ByteArrayClassLoader
 import io.magnaura.protocol.CompilationResult
 import io.magnaura.protocol.Project
 import io.magnaura.protocol.ProjectFile
 import kotlinx.coroutines.runBlocking
-import java.awt.BorderLayout
-import javax.swing.JFrame
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.SwingUtilities
+import javax.swing.*
+
 
 data class NamedFile(val name: String, val bytes: ByteArray)
-
-class ByteArrayClassLoader(val bytes: ByteArray) : ClassLoader() {
-
-    override fun findClass(name: String): Class<*> {
-        return defineClass("FileKt", bytes,0, bytes.size)
-    }
-}
 
 fun getText(): String {
     val client = HttpClient() {
@@ -80,16 +71,18 @@ fun main(args: Array<String>) {
     SwingUtilities.invokeLater {
         JFrame("Kitchen Frame").also {
             it.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-            it.setSize(400, 400)
+            it.setSize(1200, 800)
             it.isVisible = true
 
-            val text = getText()
+//            val text = getText()
 
-            it.add(
-                    JPanel().also { panel ->
-                        panel.layout = BorderLayout()
-                        panel.add(JLabel(text))
-                    }
+            it.add(MainPanel()
+
+//                    JPanel().also { panel ->
+//                        panel.layout = BorderLayout()
+//                        panel.add(JLabel(text))
+//                        panel.add(CodeArea())
+//                    }
             )
         }
     }

@@ -17,6 +17,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core-jvm:$ktor_version")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$ktor_version")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+    implementation(project(":platform"))
     implementation(project(":protocol"))
 }
 
