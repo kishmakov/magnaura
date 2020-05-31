@@ -3,6 +3,7 @@ package io.magnaura.client.jvm
 import io.ktor.client.HttpClient
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.http.ContentType
@@ -17,6 +18,15 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
 
+data class NamedFile(val name: String, val bytes: ByteArray)
+
+class ByteArrayClassLoader(val bytes: ByteArray) : ClassLoader() {
+
+    override fun findClass(name: String): Class<*> {
+        return defineClass("FileKt", bytes,0, bytes.size)
+    }
+}
+
 fun getText(): String {
     val client = HttpClient() {
         install(JsonFeature) {
@@ -26,19 +36,40 @@ fun getText(): String {
 
     val projectFile = ProjectFile(
         name = "File.kt",
-        text = "fun say(args: Array<String>): String {\n  return \"239\"\n}\n fun main(args: Array<String>) {\n    println(\"Hello world.\")\n}"
+        text = "fun square(num: Int): Int {\n  return num * num\n}\n"
     )
 
     val result = runBlocking<String> {
-        val result: CompilationResult = client.post {
+        val compilationResult: CompilationResult = client.post {
             url("http://0.0.0.0:8080/compiler")
             contentType(ContentType.Application.Json)
             body = Project(files = listOf(projectFile))
         }
 
-        println("Server send us ${result.files.size} files.")
+        val namedFiles = ArrayList<NamedFile>()
 
-        "$result"
+        for (file in compilationResult.files) {
+            val fileBytes: ByteArray = client.get("http://0.0.0.0:8080/file/${file.id}")
+            namedFiles.add(NamedFile(file.name, fileBytes))
+        }
+
+        for (file in namedFiles) {
+            if (file.name.endsWith(".class")) {
+                val cl = ByteArrayClassLoader(file.bytes)
+                val klass = cl.loadClass(file.name)
+                val method = klass.getMethod("square", Int::class.java)
+                val num: Int = 15
+                val numSq = method.invoke(null, num)
+
+                println("$num^2 = $numSq")
+            }
+        }
+
+
+
+        println("Server send us ${compilationResult.files.size} files.")
+
+        "$compilationResult"
     }
 
     client.close()
