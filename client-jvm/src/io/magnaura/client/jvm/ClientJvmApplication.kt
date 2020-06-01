@@ -69,7 +69,7 @@ fun getText(): String {
 
 fun main(args: Array<String>) {
     SwingUtilities.invokeLater {
-        JFrame("Kitchen Frame").also {
+        JFrame(Literals.applicationHeader).also {
             it.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
             it.setSize(1200, 800)
             it.isVisible = true

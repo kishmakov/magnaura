@@ -5,57 +5,48 @@ import java.awt.Dimension
 import java.awt.GridLayout
 import javax.swing.*
 
-fun actionPanel(): JPanel {
-    val result = JPanel()
-    val button = JButton("Run")
-    button.addActionListener {
-        println("Hi, $it")
+class MainPanel : JPanel() {
+    private val codeArea = JTextArea(20, 100)
+    private val resultArea = JTextArea(20, 100)
+
+    private var runButton = JButton("Run").apply {
+        addActionListener {
+            resultArea.text = codeArea.text
+        }
     }
-    result.add(button)
-    return result
-}
-
-
-class MainPanel : JPanel(GridLayout()) {
-    private val action = actionPanel()
-    private val codeArea = JTextArea("code area", 5, 20)
-    private val resultArea = JTextArea("result area", 5, 20)
 
     private val elementBorder = BorderFactory.createEmptyBorder(10, 10, 10, 10)
 
-
     init {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
-
-        action.preferredSize = Dimension(250, 80)
-        action.border = elementBorder
 
         codeArea.border = elementBorder
 
         resultArea.border = elementBorder
         resultArea.isEditable = false
         resultArea.background = Color.LIGHT_GRAY
+        resultArea.minimumSize = Dimension(250, 80)
 
-        add(codeArea)
-        add(action)
-        add(resultArea)
+        add(makeScrollable(codeArea))
+        add(actionPanel())
+        add(makeScrollable(resultArea))
 
-//        textField.addActionListener(this)
-//        textArea.setEditable(false)
-
-//        val scrollPane = JScrollPane(textArea)
-
-        //Add Components to this panel.
-//        val constraints = GridBagConstraints()
-//        constraints.gridwidth = GridBagConstraints.REMAINDER
-//
-//        constraints.fill = GridBagConstraints.HORIZONTAL
-//        add(textField, constraints)
-//
-//        constraints.fill = GridBagConstraints.BOTH
-//        constraints.weightx = 1.0
-//        constraints.weighty = 1.0
-//        add(scrollPane, constraints)
     }
 
+    private fun actionPanel(): JPanel {
+        val result = JPanel()
+        result.add(runButton)
+
+        result.preferredSize = Dimension(250, 80)
+        result.border = elementBorder
+
+        return result
+    }
+
+    private fun makeScrollable(textArea: JTextArea): JScrollPane {
+        val pane = JScrollPane(textArea)
+        pane.preferredSize = Dimension(600, 300)
+        textArea.autoscrolls = true
+        return pane
+    }
 }
