@@ -6,6 +6,7 @@ dependencies {
     val kotlin_version: String by project
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+    implementation(project(":protocol"))
 }
 
 sourceSets {

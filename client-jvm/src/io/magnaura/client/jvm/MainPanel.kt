@@ -11,7 +11,11 @@ class MainPanel : JPanel() {
 
     private var runButton = JButton("Run").apply {
         addActionListener {
-            resultArea.text = codeArea.text
+            val squareFunction = CompilerClient.compile(codeArea.text)
+            val num: Int = 15
+            val numSq = squareFunction(num)
+
+            resultArea.text = "$num^2 = $numSq"
         }
     }
 
