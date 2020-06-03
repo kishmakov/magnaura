@@ -61,12 +61,9 @@ object CompilerClient {
         return bytes
     }
 
-    private fun generateClassName(text: String): String {
-        return "Computer"
-    }
-
     fun compile(text: String): SquareFunction {
-        val className = generateClassName(text)
+        val className = Constants.className + "_" + text.md5()
+
         if (!loader.hasClass(className)) {
             loader.addClass(className, doCompile(className, text))
         }
