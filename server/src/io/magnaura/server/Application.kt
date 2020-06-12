@@ -30,6 +30,7 @@ import kotlinx.html.ul
 import io.magnaura.server.compiler.KotlinCompiler
 import io.magnaura.server.compiler.KotlinEnvironment
 import io.magnaura.server.storage.Storage
+import io.magnaura.server.storage.registerLibraryClasses
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -55,7 +56,14 @@ fun Application.module(testing: Boolean = false) {
     val client = HttpClient() {
     }
 
-    KotlinEnvironment.setClasspath(environment.config.property("magnaura.jvm.folder")?.getString())
+    val libraryJars = listJars("/Users/kirill.shmakov/Repos/magnaura/library/build/libs")
+    val compilerJars = listJars(environment.config.property("magnaura.jvm.folder")?.getString())
+
+    val libraryIds = registerLibraryClasses(libraryJars)
+
+    KotlinEnvironment.appendToClassPath(libraryJars)
+    KotlinEnvironment.appendToClassPath(compilerJars)
+    KotlinEnvironment.initEnvironment()
 
     routing {
         get("/") {
@@ -92,6 +100,10 @@ fun Application.module(testing: Boolean = false) {
 //                    val method = klass.getMethod("say", Array<String>::class.java)
 //                    val obj = method.invoke(null, emptyArray<String>())
 //                }
+            }
+
+            for ((name, index) in libraryIds) {
+                compiledClasses.add(CompiledClass(name, index))
             }
 
             println("Get some request")

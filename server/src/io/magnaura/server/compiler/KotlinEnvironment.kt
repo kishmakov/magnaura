@@ -13,29 +13,57 @@ import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.js.config.JSConfigurationKeys
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.*
 
 object KotlinEnvironment {
     var coreEnvironment: KotlinCoreEnvironment? = null
 
-    fun setClasspath(directory: String) {
+    private val classPath = arrayListOf<File>()
+
+    fun appendToClassPath(files: List<File>) {
+        classPath.addAll(files)
+    }
+
+//    fun setClasspath(directory: String) {
+//        val arguments = K2JVMCompilerArguments()
+//        val classpath = File(directory).listFiles().filter { it.exists() && it.isFile && it.extension == "jar" }
+//        coreEnvironment = KotlinCoreEnvironment.createForTests(
+//                parentDisposable = Disposable {},
+//                extensionConfigs = EnvironmentConfigFiles.JVM_CONFIG_FILES,
+//                initialConfiguration = CompilerConfiguration().apply {
+//                    addJvmClasspathRoots(classpath)
+//                    val messageCollector = MessageCollector.NONE
+//                    put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
+//                    put(CommonConfigurationKeys.MODULE_NAME, UUID.randomUUID().toString())
+//                    with(K2JVMCompilerArguments()) {
+//                        put(JVMConfigurationKeys.DISABLE_PARAM_ASSERTIONS, noParamAssertions)
+//                        put(JVMConfigurationKeys.DISABLE_CALL_ASSERTIONS, noCallAssertions)
+//                        put(JSConfigurationKeys.TYPED_ARRAYS_ENABLED, true)
+//                    }
+//                    languageVersionSettings = arguments.toLanguageVersionSettings(messageCollector)
+//                }
+//        )
+//    }
+
+    fun initEnvironment() {
         val arguments = K2JVMCompilerArguments()
-        val classpath = File(directory).listFiles().filter { it.exists() && it.isFile && it.extension == "jar" }
         coreEnvironment = KotlinCoreEnvironment.createForTests(
-                parentDisposable = Disposable {},
-                extensionConfigs = EnvironmentConfigFiles.JVM_CONFIG_FILES,
-                initialConfiguration = CompilerConfiguration().apply {
-                    addJvmClasspathRoots(classpath)
-                    val messageCollector = MessageCollector.NONE
-                    put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
-                    put(CommonConfigurationKeys.MODULE_NAME, UUID.randomUUID().toString())
-                    with(K2JVMCompilerArguments()) {
-                        put(JVMConfigurationKeys.DISABLE_PARAM_ASSERTIONS, noParamAssertions)
-                        put(JVMConfigurationKeys.DISABLE_CALL_ASSERTIONS, noCallAssertions)
-                        put(JSConfigurationKeys.TYPED_ARRAYS_ENABLED, true)
-                    }
-                    languageVersionSettings = arguments.toLanguageVersionSettings(messageCollector)
+            parentDisposable = Disposable {},
+            extensionConfigs = EnvironmentConfigFiles.JVM_CONFIG_FILES,
+            initialConfiguration = CompilerConfiguration().apply {
+                addJvmClasspathRoots(classPath)
+                val messageCollector = MessageCollector.NONE
+                put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
+                put(CommonConfigurationKeys.MODULE_NAME, UUID.randomUUID().toString())
+                with(K2JVMCompilerArguments()) {
+                    put(JVMConfigurationKeys.DISABLE_PARAM_ASSERTIONS, noParamAssertions)
+                    put(JVMConfigurationKeys.DISABLE_CALL_ASSERTIONS, noCallAssertions)
+                    put(JSConfigurationKeys.TYPED_ARRAYS_ENABLED, true)
                 }
+                languageVersionSettings = arguments.toLanguageVersionSettings(messageCollector)
+            }
         )
     }
 }

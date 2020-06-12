@@ -20,7 +20,7 @@ typealias SquareFunction = (Int) -> Int
 object CompilerClient {
     private val loader = ByteArrayClassLoader()
 
-    private fun doCompile(className: String, text: String): ByteArray {
+    private fun doCompile(className: String, text: String): Map<String, ByteArray> {
         val client = HttpClient() {
             install(JsonFeature) {
                 serializer = JacksonSerializer()
@@ -30,6 +30,8 @@ object CompilerClient {
         val projectFile = ProjectFile(
             name = "$className.kt",
             text = """
+                import io.magnaura.library.sum
+                
                 class $className {
                     fun ${Constants.functionName}(num: Int): Int {  
                     $text
@@ -37,19 +39,18 @@ object CompilerClient {
             """.trimIndent()
         )
 
-        val bytes = runBlocking {
+        val compilationClasses = runBlocking {
             val compilationResult: CompilationResult = client.post {
                 url("http://0.0.0.0:8080/compiler")
                 contentType(ContentType.Application.Json)
                 body = Project(files = listOf(projectFile))
             }
 
-            var result = ByteArray(0)
+            val result = HashMap<String, ByteArray>(0)
 
             for (file in compilationResult.files) {
                 if (file.name.endsWith(".class")) {
-                    result = client.get("http://0.0.0.0:8080/file/${file.id}")
-                    break
+                    result[file.name.removeSuffix(".class").replace('/', '.')] = client.get("http://0.0.0.0:8080/file/${file.id}")
                 }
             }
 
@@ -58,14 +59,16 @@ object CompilerClient {
 
         client.close()
 
-        return bytes
+        return compilationClasses
     }
 
     fun compile(text: String): SquareFunction {
         val className = Constants.className + "_" + text.md5()
 
         if (!loader.hasClass(className)) {
-            loader.addClass(className, doCompile(className, text))
+            for ((name, bytes) in doCompile(className, text)) {
+                loader.addClass(name, bytes)
+            }
         }
 
         val klass = loader.loadClass(className)

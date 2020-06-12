@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo
 import org.jetbrains.kotlin.resolve.jvm.extensions.AnalysisHandlerExtension
 import org.jetbrains.kotlin.resolve.lazy.declarations.FileBasedDeclarationProviderFactory
 
-class ErrorAnalyzer {
+object ErrorAnalyzer {
     fun analysisOf(files: List<KtFile>): Analysis = CliBindingTrace().let { trace ->
         val project = files.first().project
         val componentProvider = TopDownAnalyzerFacadeForJVM.createContainer(
@@ -47,9 +47,5 @@ class ErrorAnalyzer {
                 componentProvider = componentProvider,
                 analysisResult = AnalysisResult.success(trace.bindingContext, moduleDescriptor)
         )
-    }
-
-    companion object {
-        val INSTANCE = ErrorAnalyzer()
     }
 }

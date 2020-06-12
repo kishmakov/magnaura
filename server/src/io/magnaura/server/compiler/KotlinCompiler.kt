@@ -41,6 +41,6 @@ class KotlinCompiler(private val errorAnalyzer: ErrorAnalyzer) {
     }
 
     companion object {
-        val INSTANCE = KotlinCompiler(ErrorAnalyzer.INSTANCE)
+        val INSTANCE = KotlinCompiler(ErrorAnalyzer)
     }
 }
