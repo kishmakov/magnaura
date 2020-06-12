@@ -106,6 +106,5 @@ tasks.withType<org.gradle.api.tasks.testing.Test> {
     for ((key, value) in applicationProperties) {
         systemProperty(key, value)
     }
-
 }
 

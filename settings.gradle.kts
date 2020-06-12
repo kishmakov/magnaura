@@ -15,6 +15,7 @@ pluginManagement {
 }
 
 include(":client-jvm")
+include(":library")
 include(":platform")
 include(":protocol")
 include(":server")
@@ -22,6 +23,7 @@ include(":server")
 rootProject.name = "magnaura"
 
 project(":client-jvm").projectDir = File("$rootDir/client-jvm")
+project(":library").projectDir = File("$rootDir/library")
 project(":platform").projectDir = File("$rootDir/platform")
 project(":protocol").projectDir = File("$rootDir/protocol")
 project(":server").projectDir = File("$rootDir/server")
