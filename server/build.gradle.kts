@@ -66,10 +66,7 @@ sourceSets {
     }
 }
 
-val applicationProperties = mapOf(
-    "magnaura.jvm.folder" to "$projectDir/$jvmLibsFolder"
-)
-
+val applicationProperties = computeProperties()
 
 fun generateConfig(properties: Map<String, String>): String {
     val port = "\${?PORT}"
@@ -88,6 +85,14 @@ fun generateConfig(properties: Map<String, String>): String {
 
 }
 
+fun computeProperties(): Map<String, String> {
+    val libsJar = project(":library").tasks.findByName("jar")!!.outputs.files.singleFile
+    return mapOf(
+        "magnaura.jvm.kotlinCompilerJars" to "$projectDir/$jvmLibsFolder",
+        "magnaura.jvm.libraries" to libsJar.parent.toString()
+    )
+}
+
 fun buildConfigFile() {
     projectDir.resolve("resources/application.conf").apply{
         println("Generate config into $absolutePath")
@@ -97,6 +102,7 @@ fun buildConfigFile() {
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    dependsOn(":library:build")
     dependsOn(copyJVMDependencies)
     buildConfigFile()
 }

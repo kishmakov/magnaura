@@ -56,8 +56,8 @@ fun Application.module(testing: Boolean = false) {
     val client = HttpClient() {
     }
 
-    val libraryJars = listJars("/Users/kirill.shmakov/Repos/magnaura/library/build/libs")
-    val compilerJars = listJars(environment.config.property("magnaura.jvm.folder")?.getString())
+    val libraryJars = listJars(environment.config.property("magnaura.jvm.libraries")?.getString())
+    val compilerJars = listJars(environment.config.property("magnaura.jvm.kotlinCompilerJars")?.getString())
 
     val libraryIds = registerLibraryClasses(libraryJars)
 
