@@ -11,26 +11,23 @@ import org.jetbrains.kotlin.resolve.BindingContext
 
 class Compiled(val files: Map<String, ByteArray> = emptyMap(), val mainClass: String? = null)
 
-class KotlinCompiler(private val errorAnalyzer: ErrorAnalyzer) {
-    fun compile(files: List<KtFile>): Compiled {
-        val generationState = generationStateFor(files)
+class KotlinCompiler(private val analyzer: ErrorAnalyzer) {
+
+    fun compile(): Compiled {
+        val generationState = GenerationState.Builder(
+            analyzer.project,
+            ClassBuilderFactories.BINARIES,
+            analyzer.analysisResult.moduleDescriptor,
+            analyzer.analysisResult.bindingContext,
+            analyzer.files,
+            KotlinEnvironment.coreEnvironment.configuration
+        ).build()
+
         KotlinCodegenFacade.compileCorrectFiles(generationState)
         return Compiled(
                 files = generationState.factory.asList().map { it.relativePath to it.asByteArray() }.toMap(),
-                mainClass = mainClassFrom(generationState.bindingContext, files)
+                mainClass = mainClassFrom(generationState.bindingContext, analyzer.files)
         )
-    }
-
-    private fun generationStateFor(files: List<KtFile>): GenerationState {
-        val analysis = errorAnalyzer.analysisOf(files)
-        return GenerationState.Builder(
-            files.first().project,
-            ClassBuilderFactories.BINARIES,
-            analysis.analysisResult.moduleDescriptor,
-            analysis.analysisResult.bindingContext,
-            files,
-            KotlinEnvironment.coreEnvironment.configuration
-        ).build()
     }
 
     private fun mainClassFrom(bindingContext: BindingContext, files: List<KtFile>): String? {
@@ -38,9 +35,5 @@ class KotlinCompiler(private val errorAnalyzer: ErrorAnalyzer) {
         return files.find { mainFunctionDetector.hasMain(it.declarations) }?.let {
             PackagePartClassUtils.getPackagePartFqName(it.packageFqName, it.name).asString()
         }
-    }
-
-    companion object {
-        val INSTANCE = KotlinCompiler(ErrorAnalyzer)
     }
 }
