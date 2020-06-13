@@ -4,6 +4,7 @@ import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.client.HttpClient
+import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
 import io.ktor.html.respondHtml
 import io.ktor.http.ContentType
@@ -14,6 +15,7 @@ import io.ktor.jackson.jackson
 import io.ktor.locations.Location
 import io.ktor.locations.Locations
 import io.ktor.locations.get
+import io.ktor.request.path
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.response.respondText
@@ -31,6 +33,7 @@ import io.magnaura.server.compiler.KotlinCompiler
 import io.magnaura.server.compiler.KotlinEnvironment
 import io.magnaura.server.storage.Storage
 import io.magnaura.server.storage.registerLibraryClasses
+import org.slf4j.event.Level
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -53,6 +56,12 @@ fun Application.module(testing: Boolean = false) {
         }
     }
 
+    install(CallLogging) {
+        level = Level.INFO
+        filter { call -> call.request.path().startsWith("/compiler") }
+    }
+
+
     val client = HttpClient() {
     }
 
@@ -63,7 +72,6 @@ fun Application.module(testing: Boolean = false) {
 
     KotlinEnvironment.appendToClassPath(libraryJars)
     KotlinEnvironment.appendToClassPath(compilerJars)
-    KotlinEnvironment.initEnvironment()
 
     routing {
         get("/") {

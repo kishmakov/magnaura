@@ -1,8 +1,13 @@
 package io.magnaura.server.compiler
 
 import org.jetbrains.kotlin.analyzer.AnalysisResult
+import org.jetbrains.kotlin.cli.common.messages.AnalyzerWithCompilerReport
 import org.jetbrains.kotlin.cli.jvm.compiler.CliBindingTrace
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler
+import org.jetbrains.kotlin.cli.jvm.compiler.NoScopeRecordCliBindingTrace
 import org.jetbrains.kotlin.cli.jvm.compiler.TopDownAnalyzerFacadeForJVM
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.container.getService
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtFile
@@ -19,9 +24,9 @@ object ErrorAnalyzer {
             project = project,
             files = files,
             trace = trace,
-            configuration = KotlinEnvironment.coreEnvironment!!.configuration,
+            configuration = KotlinEnvironment.coreEnvironment.configuration,
             packagePartProvider = { globalSearchScope ->
-                KotlinEnvironment.coreEnvironment!!.createPackagePartProvider(globalSearchScope)
+                KotlinEnvironment.coreEnvironment.createPackagePartProvider(globalSearchScope)
             },
             declarationProviderFactory = { storageManager, ktFiles ->
                 FileBasedDeclarationProviderFactory(storageManager, ktFiles)
@@ -43,9 +48,32 @@ object ErrorAnalyzer {
                     files = files
                 ) != null
             }
+
+        var analysisResult: AnalysisResult? = null
+
+        val analyzerWithCompilerReport = AnalyzerWithCompilerReport(ServerCollector(), KotlinEnvironment.coreEnvironment.configuration.languageVersionSettings)
+        analyzerWithCompilerReport.analyzeAndReport(files) {
+            analysisResult = TopDownAnalyzerFacadeForJVM.analyzeFilesWithJavaIntegration(
+                project,
+                files,
+                NoScopeRecordCliBindingTrace(),
+                KotlinEnvironment.coreEnvironment.configuration,
+                KotlinEnvironment.coreEnvironment::createPackagePartProvider,
+                sourceModuleSearchScope = TopDownAnalyzerFacadeForJVM.newModuleSearchScope(project, files)
+            )
+
+            analysisResult!!
+        }
+        TopDownAnalyzerFacadeForJVM.analyzeFilesWithJavaIntegration(
+            project,
+            files,
+            NoScopeRecordCliBindingTrace(),
+            KotlinEnvironment.coreEnvironment.configuration,
+            KotlinEnvironment.coreEnvironment::createPackagePartProvider
+        )
         Analysis(
                 componentProvider = componentProvider,
-                analysisResult = AnalysisResult.success(trace.bindingContext, moduleDescriptor)
+                analysisResult = analysisResult!!
         )
     }
 }
