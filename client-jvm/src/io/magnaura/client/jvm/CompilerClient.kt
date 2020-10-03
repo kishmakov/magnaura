@@ -34,7 +34,8 @@ object CompilerClient {
                 
                 class $className {
                     fun ${Constants.functionName}(num: Int): Int {  
-                    $text
+                        $text
+                    }
                 }
             """.trimIndent()
         )
