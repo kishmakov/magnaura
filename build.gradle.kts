@@ -6,5 +6,6 @@ allprojects {
         mavenLocal()
         jcenter()
         maven("https://kotlin.bintray.com/ktor")
+        maven("https://packages.jetbrains.team/maven/p/ui/dev")
     }
 }
