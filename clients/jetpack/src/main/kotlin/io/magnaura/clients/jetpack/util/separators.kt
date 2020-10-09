@@ -11,12 +11,14 @@ import androidx.compose.ui.unit.dp
 private val SEPARATOR_WIDTH = 2.dp
 private val SEPARATOR_COLOR = Color(0xFF000000)
 
-private val HORISONTAL_MODIFIER = Modifier
-    .height(SEPARATOR_WIDTH)
-    .background(SEPARATOR_COLOR)
-    .fillMaxWidth()
+private val COMMON_MODIFIER = Modifier.background(SEPARATOR_COLOR)
 
 @Composable
 fun HorisontalSeparator() {
-    Row(HORISONTAL_MODIFIER) {}
+    Row(COMMON_MODIFIER.height(SEPARATOR_WIDTH).fillMaxWidth()) {}
+}
+
+@Composable
+fun VerticalSeparator() {
+    Column(COMMON_MODIFIER.width(SEPARATOR_WIDTH).fillMaxHeight()) {}
 }

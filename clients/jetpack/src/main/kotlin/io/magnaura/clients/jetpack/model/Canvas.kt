@@ -1,3 +1,3 @@
 package io.magnaura.clients.jetpack.model
 
-class Canvas(var text: String)
+class Canvas(var selected: Int, val proverbs: Array<String>)
