@@ -4,7 +4,7 @@ plugins {
 }
 
 application {
-    mainClassName = "io.magnaura.client.jvm.MainKt"
+    mainClassName = "io.magnaura.clients.swing.ClientJvmApplicationKt"
 }
 
 dependencies {
@@ -20,16 +20,4 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     implementation(project(":platform"))
     implementation(project(":protocol"))
-}
-
-sourceSets {
-    main {
-        java { srcDir("src") }
-        resources { srcDir("resources") }
-    }
-
-    test {
-        java { srcDir("test") }
-        resources { srcDirs(emptyList<String>()) }
-    }
 }

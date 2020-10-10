@@ -1,8 +1,7 @@
-package io.magnaura.client.jvm
+package io.magnaura.clients.swing
 
 import java.awt.Color
 import java.awt.Dimension
-import java.awt.GridLayout
 import javax.swing.*
 
 class MainPanel : JPanel() {

@@ -1,4 +1,4 @@
-package io.magnaura.client.jvm
+package io.magnaura.clients.swing
 
 import javax.swing.*
 

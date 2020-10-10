@@ -28,8 +28,9 @@ buildscript {
     }
 }
 
-include(":client-jvm")
 include(":clients:jetpack")
+include(":clients:swing")
+
 include(":library")
 include(":platform")
 include(":protocol")
@@ -37,8 +38,9 @@ include(":server")
 
 rootProject.name = "magnaura"
 
-project(":client-jvm").projectDir = File("$rootDir/client-jvm")
 project(":clients:jetpack").projectDir = File("$rootDir/clients/jetpack")
+project(":clients:swing").projectDir = File("$rootDir/clients/swing")
+
 project(":library").projectDir = File("$rootDir/library")
 project(":platform").projectDir = File("$rootDir/platform")
 project(":protocol").projectDir = File("$rootDir/protocol")
