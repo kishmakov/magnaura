@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.compose.compose
 
 buildscript {
@@ -21,9 +22,26 @@ application {
 }
 
 dependencies {
-    api(compose.runtime)
-    api(compose.foundation)
-    api(compose.material)
+    implementation(compose.runtime)
+    implementation(compose.foundation)
+    implementation(compose.material)
 
     implementation(compose.desktop.all)
+}
+
+tasks {
+    withType<KotlinCompile> {
+        kotlinOptions {
+            allWarningsAsErrors = true
+
+            freeCompilerArgs += listOf(
+                "-Xallow-jvm-ir-dependencies",
+                "-Xskip-prerelease-check"
+            )
+
+            useIR = true
+
+            jvmTarget = "1.8"
+        }
+    }
 }

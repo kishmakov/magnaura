@@ -17,7 +17,7 @@ import kotlinx.coroutines.selects.select
 
 @Composable
 private fun CanvasPane(model: Canvas, height: Int) {
-    val canvasPaneModifier = Modifier.fillMaxWidth().height(height = height.dp)
+    val canvasPaneModifier = Modifier.fillMaxWidth().height(height.dp)
 
     Row(canvasPaneModifier) {
         CanvasView(model)
@@ -38,10 +38,10 @@ private fun IdePane(onClick: () -> Unit) {
 fun main() {
     AppWindow(
         title = applicationHeader,
-        size = IntSize(1500, 900)
+        size = IntSize(2500, 1500)
     ).show @Composable {
         Column {
-            CanvasPane(canvas.value, 400)
+            CanvasPane(canvas.value, 600)
             HorisontalSeparator()
             IdePane {
                 val nextIndex = with (canvas.value) { (selected + 1) % proverbs.size }
