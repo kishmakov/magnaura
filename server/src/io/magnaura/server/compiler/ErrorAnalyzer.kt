@@ -1,16 +1,13 @@
 package io.magnaura.server.compiler
 
 import org.jetbrains.kotlin.analyzer.AnalysisResult
-import org.jetbrains.kotlin.cli.common.messages.AnalyzerWithCompilerReport
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.common.messages.*
 import org.jetbrains.kotlin.cli.jvm.compiler.NoScopeRecordCliBindingTrace
 import org.jetbrains.kotlin.cli.jvm.compiler.TopDownAnalyzerFacadeForJVM
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.psi.KtFile
 
-data class LocatedMessage(val message: String, val location: CompilerMessageLocation? = null) {
+data class LocatedMessage(val message: String, val location: CompilerMessageSourceLocation? = null) {
     override fun toString() = "$message @ $location"
 }
 
@@ -25,7 +22,7 @@ class AnalyzerMessageCollector : MessageCollector {
 
     override fun hasErrors() = errors.isNotEmpty()
 
-    override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation?) {
+    override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageSourceLocation?) {
         val locatedMessage = LocatedMessage(message, location)
         when {
             severity.isError -> errors.add(locatedMessage)

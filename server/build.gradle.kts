@@ -3,7 +3,7 @@ plugins {
     application
 }
 
-val jvmLibsFolder = project.property("kotlin_in_application") as String
+val kotlin_in_application: String by project
 
 val jvmCompilerDependency: Configuration by configurations.creating {
     isTransitive = false
@@ -11,7 +11,7 @@ val jvmCompilerDependency: Configuration by configurations.creating {
 
 val copyJVMDependencies by tasks.creating(Copy::class) {
     from(jvmCompilerDependency)
-    into(jvmLibsFolder)
+    into(kotlin_in_application)
 }
 
 application {
@@ -19,6 +19,8 @@ application {
 }
 
 dependencies {
+    val coroutines_in_application: String by project
+
     val kotlin_version: String by project
     val ktor_version: String by project
     val logback_version: String by project
@@ -28,11 +30,11 @@ dependencies {
     jvmCompilerDependency("org.hamcrest:hamcrest:2.2")
 
     // Kotlin libraries
-    jvmCompilerDependency("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_versions")
-    jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
-    jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
-    jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
-    jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version")
+    jvmCompilerDependency("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_in_application")
+    jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_in_application")
+    jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_in_application")
+    jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_in_application")
+    jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_in_application")
 
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-netty:$ktor_version")
@@ -88,7 +90,7 @@ fun generateConfig(properties: Map<String, String>): String {
 fun computeProperties(): Map<String, String> {
     val libsJar = project(":library").tasks.findByName("jar")!!.outputs.files.singleFile
     return mapOf(
-        "magnaura.jvm.kotlinCompilerJars" to "$projectDir/$jvmLibsFolder",
+        "magnaura.jvm.kotlinCompilerJars" to "$projectDir/$kotlin_in_application",
         "magnaura.jvm.libraries" to libsJar.parent.toString()
     )
 }
