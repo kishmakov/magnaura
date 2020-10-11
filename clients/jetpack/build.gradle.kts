@@ -27,6 +27,8 @@ dependencies {
     implementation(compose.material)
 
     implementation(compose.desktop.all)
+
+    implementation(project(":clients:common"))
 }
 
 tasks {

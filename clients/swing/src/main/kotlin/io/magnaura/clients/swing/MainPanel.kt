@@ -1,5 +1,6 @@
 package io.magnaura.clients.swing
 
+import io.magnaura.clients.common.CompilerClient
 import java.awt.Color
 import java.awt.Dimension
 import javax.swing.*
@@ -24,11 +25,13 @@ class MainPanel : JPanel() {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
 
         codeArea.border = elementBorder
+        codeArea.text = "return num * num"
 
         resultArea.border = elementBorder
         resultArea.isEditable = false
         resultArea.background = Color.LIGHT_GRAY
         resultArea.minimumSize = Dimension(250, 80)
+        resultArea.text = "Run your program ..."
 
         add(makeScrollable(codeArea))
         add(actionPanel())

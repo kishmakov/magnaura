@@ -1,4 +1,4 @@
-package io.magnaura.clients.swing
+package io.magnaura.clients.common
 
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest

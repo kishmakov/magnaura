@@ -7,8 +7,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import io.magnaura.clients.common.CompilerClient
 import io.magnaura.clients.jetpack.Literals.applicationHeader
 import io.magnaura.clients.jetpack.data.canvas
+import io.magnaura.clients.jetpack.data.program
 import io.magnaura.clients.jetpack.model.Canvas
 import io.magnaura.clients.jetpack.util.HorisontalSeparator
 import io.magnaura.clients.jetpack.view.CanvasView
@@ -44,8 +46,11 @@ fun main() {
             CanvasPane(canvas.value, 600)
             HorisontalSeparator()
             IdePane {
-                val nextIndex = with (canvas.value) { (selected + 1) % proverbs.size }
-                canvas.value = Canvas(nextIndex, canvas.value.proverbs)
+                val squareFunction = CompilerClient.compile(program.value.text)
+                val num: Int = 15
+                val numSq = squareFunction(num)
+
+                canvas.value = Canvas("$num^2 = $numSq")
             }
         }
     }

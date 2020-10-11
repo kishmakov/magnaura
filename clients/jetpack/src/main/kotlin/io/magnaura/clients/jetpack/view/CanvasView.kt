@@ -13,7 +13,7 @@ import io.magnaura.clients.jetpack.model.Canvas
 val CANVAS_BACKGROUND = Color(0x0FF0F0F0)
 
 @Composable
-fun CanvasView(model: Canvas) {
+fun CanvasView(canvas: Canvas) {
     val canvasModifier = Modifier
         .background(CANVAS_BACKGROUND)
         .fillMaxWidth()
@@ -21,7 +21,7 @@ fun CanvasView(model: Canvas) {
 
     Row(modifier = canvasModifier) {
         Text(
-            model.proverbs[model.selected],
+            canvas.text,
             color = Color.DarkGray,
             fontSize = 72.sp,
             modifier = Modifier.padding(

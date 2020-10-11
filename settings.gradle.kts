@@ -28,6 +28,7 @@ buildscript {
     }
 }
 
+include(":clients:common")
 include(":clients:jetpack")
 include(":clients:swing")
 
@@ -38,6 +39,7 @@ include(":server")
 
 rootProject.name = "magnaura"
 
+project(":clients:common").projectDir = File("$rootDir/clients/common")
 project(":clients:jetpack").projectDir = File("$rootDir/clients/jetpack")
 project(":clients:swing").projectDir = File("$rootDir/clients/swing")
 

@@ -1,4 +1,4 @@
-package io.magnaura.clients.swing
+package io.magnaura.clients.common
 
 import io.ktor.client.HttpClient
 import io.ktor.client.features.json.JacksonSerializer

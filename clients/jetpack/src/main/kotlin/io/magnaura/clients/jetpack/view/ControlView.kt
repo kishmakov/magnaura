@@ -23,16 +23,19 @@ fun ControlView(onClick: () -> Unit) {
         .background(CONTROL_BACKGROUND)
         .fillMaxHeight()
 
-    Column(modifier = controlModifier) {
+
+    val buttonModifier = Modifier
+        .padding(horizontal = 16.dp, vertical = 16.dp)
+        .preferredHeight(36.dp)
+
+    Column(controlModifier) {
         Button(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 16.dp)
-                .preferredHeight(36.dp),
+            modifier = buttonModifier,
             onClick = onClick,
             backgroundColor = Color.Blue.copy(alpha = 0.10f)
         ) {
             Text(
-                "Next tip",
+                "Run",
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
         }
