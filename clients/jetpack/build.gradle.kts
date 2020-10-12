@@ -1,16 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.compose.compose
 
-buildscript {
-    repositories {
-        maven("https://packages.jetbrains.team/maven/p/ui/dev")
-    }
-
-    dependencies {
-        classpath("org.jetbrains.compose:compose-gradle-plugin:0.1.0-build60")
-    }
-}
-
 plugins {
     kotlin("jvm")
     id("org.jetbrains.compose")
