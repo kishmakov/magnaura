@@ -5,32 +5,24 @@ import java.awt.Dimension
 import javax.swing.*
 
 class MainPanel : JPanel() {
-    private val codeArea = JTextArea(20, 100)
-    private val terminalPanel = TerminalPanel()
-
     private var runButton = JButton("Run").apply {
         addActionListener {
-            val squareFunction = CompilerClient.compile(codeArea.text)
+            val squareFunction = CompilerClient.compile(CodeArea.text)
             val num: Int = 15
             val numSq = squareFunction(num)
 
-            terminalPanel.text = "$num^2 = $numSq"
+//            ControlPanel.text = "$num^2 = $numSq"
         }
     }
-
-
 
     init {
         layout = BoxLayout(this, BoxLayout.X_AXIS)
 
-        codeArea.border = ELEMENT_BORDER
-        codeArea.text = "return num * num"
 
 
-
-        add(makeScrollable(codeArea))
-        add(actionPanel())
-        add(terminalPanel)
+        add(makeScrollable(CodeArea))
+//        add(actionPanel())
+        add(ControlPanel)
     }
 
     private fun actionPanel(): JPanel {

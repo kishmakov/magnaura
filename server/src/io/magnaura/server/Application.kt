@@ -1,5 +1,7 @@
 package io.magnaura.server
 
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiRecursiveElementVisitor
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -21,14 +23,13 @@ import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
-import io.magnaura.protocol.CompilationResult
-import io.magnaura.protocol.CompiledClass
-import io.magnaura.protocol.Project
+import io.magnaura.protocol.*
 import io.magnaura.server.compiler.ErrorAnalyzer
 import io.magnaura.server.compiler.KotlinCompiler
 import io.magnaura.server.compiler.KotlinEnvironment
 import io.magnaura.server.storage.Storage
 import io.magnaura.server.storage.registerLibraryClasses
+import kotlinx.collections.immutable.toImmutableList
 import org.slf4j.event.Level
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -96,6 +97,24 @@ fun Application.module(testing: Boolean = false) {
                 compiledClasses,
                 warnings = analyser.messageCollector.warnings()))
         }
+
+        post("/analyzeCommand") {
+            val projectFile = call.receive<ProjectFile>()
+
+            val analyzedFile = with (projectFile) { kotlinFile(name, text) }
+
+            val result = HashSet<String>(0)
+
+            analyzedFile.accept(object : PsiRecursiveElementVisitor() {
+                    override fun visitElement(element: PsiElement) {
+                        result.add(element.text)
+                        super.visitElement(element)
+                    }
+                })
+
+            call.respond(ParsedCommand(result.toList()))
+        }
+
 
         // Static feature. Try to access `/static/ktor_logo.svg`
         static("/static") {

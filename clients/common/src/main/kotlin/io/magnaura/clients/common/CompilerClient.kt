@@ -9,10 +9,7 @@ import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.magnaura.platform.ByteArrayClassLoader
-import io.magnaura.protocol.CompilationResult
-import io.magnaura.protocol.Constants
-import io.magnaura.protocol.Project
-import io.magnaura.protocol.ProjectFile
+import io.magnaura.protocol.*
 import kotlinx.coroutines.runBlocking
 
 typealias SquareFunction = (Int) -> Int
@@ -78,6 +75,24 @@ object CompilerClient {
 
         return { num: Int ->
             method.invoke(instance, num) as Int
+        }
+    }
+
+    fun analyze(command: String): List<String> {
+        val client = HttpClient() {
+            install(JsonFeature) {
+                serializer = JacksonSerializer()
+            }
+        }
+
+        return runBlocking {
+            val analysisResult: ParsedCommand = client.post {
+                url("http://0.0.0.0:8080/analyzeCommand")
+                contentType(ContentType.Application.Json)
+                body = ProjectFile(name = "Command.kt", text = command)
+            }
+
+            analysisResult.declarations
         }
     }
 }
