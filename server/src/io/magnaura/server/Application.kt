@@ -1,7 +1,5 @@
 package io.magnaura.server
 
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiRecursiveElementVisitor
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -29,7 +27,6 @@ import io.magnaura.server.compiler.KotlinCompiler
 import io.magnaura.server.compiler.KotlinEnvironment
 import io.magnaura.server.storage.Storage
 import io.magnaura.server.storage.registerLibraryClasses
-import kotlinx.collections.immutable.toImmutableList
 import org.slf4j.event.Level
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -98,21 +95,28 @@ fun Application.module(testing: Boolean = false) {
                 warnings = analyser.messageCollector.warnings()))
         }
 
-        post("/analyzeCommand") {
-            val projectFile = call.receive<ProjectFile>()
+        post("/compileCommand") {
+            val inputProject = call.receive<Project>()
 
-            val analyzedFile = with (projectFile) { kotlinFile(name, text) }
+            val files = (inputProject.files.map { kotlinFile(it.name, it.text) } +
+                    inputProject.command?.let {  kotlinFile(it.name, it.text) }).filterNotNull()
 
-            val result = HashSet<String>(0)
+            val project = files.first().project
 
-            analyzedFile.accept(object : PsiRecursiveElementVisitor() {
-                    override fun visitElement(element: PsiElement) {
-                        result.add(element.text)
-                        super.visitElement(element)
-                    }
-                })
+            call.respond(ParsedCommand(listOf("Int")))
 
-            call.respond(ParsedCommand(result.toList()))
+//            val analyzedFile = with (projectFile) { kotlinFile(name, text) }
+//
+//            val result = HashSet<String>(0)
+//
+//            analyzedFile.accept(object : PsiRecursiveElementVisitor() {
+//                    override fun visitElement(element: PsiElement) {
+//                        result.add(element.text)
+//                        super.visitElement(element)
+//                    }
+//                })
+
+//            call.respond(ParsedCommand(result.toList()))
         }
 
 

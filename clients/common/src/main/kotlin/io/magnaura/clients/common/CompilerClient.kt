@@ -78,18 +78,25 @@ object CompilerClient {
         }
     }
 
-    fun analyze(command: String): List<String> {
+    fun executeCommand(command: String, context: String): List<String> {
+        val contextHash = context.md5()
+
+        val wrappedCommand = "fun ${Constants.commandFunction}() = $command"
+
         val client = HttpClient() {
             install(JsonFeature) {
                 serializer = JacksonSerializer()
             }
         }
 
+        val contextFile = ProjectFile(name = "context.kt", text = context.wrapInPackage(contextHash))
+        val commandFile = ProjectFile(name = "command.kt", text = wrappedCommand.wrapInPackage(contextHash))
+
         return runBlocking {
             val analysisResult: ParsedCommand = client.post {
-                url("http://0.0.0.0:8080/analyzeCommand")
+                url("http://0.0.0.0:8080/compileCommand")
                 contentType(ContentType.Application.Json)
-                body = ProjectFile(name = "Command.kt", text = command)
+                body = Project(files = listOf(contextFile), command = commandFile)
             }
 
             analysisResult.declarations
