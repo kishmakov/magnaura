@@ -9,6 +9,7 @@ pluginManagement {
 
     repositories {
         gradlePluginPortal()
+        maven("https://dl.bintray.com/kotlin/kotlin-eap")
         maven("https://packages.jetbrains.team/maven/p/ui/dev")
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }

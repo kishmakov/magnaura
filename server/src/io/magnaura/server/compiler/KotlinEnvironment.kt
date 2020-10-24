@@ -1,9 +1,9 @@
 package io.magnaura.server.compiler
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -13,8 +13,6 @@ import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.js.config.JSConfigurationKeys
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.*
 
 class ServerCollector: MessageCollector {
@@ -37,27 +35,38 @@ object KotlinEnvironment {
 
     private val classPath = arrayListOf<File>()
 
-    val coreEnvironment: KotlinCoreEnvironment by lazy {
-        KotlinCoreEnvironment.createForTests(
-            parentDisposable = Disposable {},
-            extensionConfigs = EnvironmentConfigFiles.JVM_CONFIG_FILES,
-            initialConfiguration = CompilerConfiguration().apply {
-                addJvmClasspathRoots(classPath)
-                val messageCollector = ServerCollector()
-                put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
-                put(CommonConfigurationKeys.MODULE_NAME, UUID.randomUUID().toString())
-                with(arguments) {
-                    put(JVMConfigurationKeys.DISABLE_PARAM_ASSERTIONS, noParamAssertions)
-                    put(JVMConfigurationKeys.DISABLE_CALL_ASSERTIONS, noCallAssertions)
-                    put(JVMConfigurationKeys.JVM_TARGET, JvmTarget.fromString(jvmTarget!!)!!)
-                    put(JSConfigurationKeys.TYPED_ARRAYS_ENABLED, true)
-                }
-                languageVersionSettings = arguments.toLanguageVersionSettings(messageCollector)
-            }
-        )
-    }
+    private val messageCollector = ServerCollector()
 
     fun appendToClassPath(files: List<File>) {
         classPath.addAll(files)
     }
+
+    private fun configurationBillet() = CompilerConfiguration().apply {
+        addJvmClasspathRoots(classPath)
+        put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
+        put(CommonConfigurationKeys.MODULE_NAME, UUID.randomUUID().toString())
+        languageVersionSettings = arguments.toLanguageVersionSettings(messageCollector)
+
+        with(arguments) {
+            put(JVMConfigurationKeys.JVM_TARGET, JvmTarget.fromString(jvmTarget!!)!!)
+            put(JSConfigurationKeys.TYPED_ARRAYS_ENABLED, true)
+        }
+    }
+
+    private val compilerConfiguration = configurationBillet().apply {
+        with(arguments) {
+            put(JVMConfigurationKeys.DISABLE_PARAM_ASSERTIONS, noParamAssertions)
+            put(JVMConfigurationKeys.DISABLE_CALL_ASSERTIONS, noCallAssertions)
+        }
+    }
+
+    val firConfiguration = configurationBillet().apply {
+        put(JVMConfigurationKeys.IR, true)
+    }
+
+    val coreEnvironment = KotlinCoreEnvironment.createForProduction(
+        parentDisposable = Disposer.newDisposable(),
+        configuration = compilerConfiguration,
+        configFiles = EnvironmentConfigFiles.JVM_CONFIG_FILES
+    )
 }
