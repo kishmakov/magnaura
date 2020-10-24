@@ -25,6 +25,7 @@ import io.magnaura.protocol.*
 import io.magnaura.server.compiler.ErrorAnalyzer
 import io.magnaura.server.compiler.KotlinCompiler
 import io.magnaura.server.compiler.KotlinEnvironment
+import io.magnaura.server.compiler.TypeAnalyzer
 import io.magnaura.server.storage.Storage
 import io.magnaura.server.storage.registerLibraryClasses
 import org.slf4j.event.Level
@@ -98,12 +99,9 @@ fun Application.module(testing: Boolean = false) {
         post("/compileCommand") {
             val inputProject = call.receive<Project>()
 
-            val files = (inputProject.files.map { kotlinFile(it.name, it.text) } +
-                    inputProject.command?.let {  kotlinFile(it.name, it.text) }).filterNotNull()
+            val analyzer = TypeAnalyzer((inputProject.files + inputProject.command).filterNotNull())
 
-            val project = files.first().project
-
-            call.respond(ParsedCommand(listOf("Int")))
+            call.respond(ParsedCommand(analyzer.inferCommandType()))
 
 //            val analyzedFile = with (projectFile) { kotlinFile(name, text) }
 //
