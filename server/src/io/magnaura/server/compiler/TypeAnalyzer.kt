@@ -40,15 +40,15 @@ class TypeAnalyzer(projectFiles: List<ProjectFile>) {
 
     private val project: Project = ktFiles.first().project
 
-    private val moduleInfo = FirJvmModuleInfo("module")
+    private val builtinsModuleInfo = FirJvmModuleInfo(Name.special("<built-ins>"))
+
+    private val moduleInfo = FirJvmModuleInfo("module").apply {
+        dependencies += builtinsModuleInfo
+    }
+
     private val dependenciesInfo = FirJvmModuleInfo(Name.special("<dependencies>"))
 
     fun inferCommandType(): List<String> {
-
-//        val sourcesScope = GlobalSearchScope
-//            .filesScope(project, ktFiles.map { it.virtualFile })
-//            .uniteWith(TopDownAnalyzerFacadeForJVM.AllJavaSourcesInProjectScope(project))
-
         val sourcesScope = TopDownAnalyzerFacadeForJVM.newModuleSearchScope(project, ktFiles)
 
         val librariesScope = ProjectScope.getLibrariesScope(project)
@@ -69,6 +69,13 @@ class TypeAnalyzer(projectFiles: List<ProjectFile>) {
             librariesScope,
             project,
             librariesPackagePartProvider
+        )
+
+        val allProjectScope = GlobalSearchScope.allScope(project)
+
+        FirSessionFactory.createLibrarySession(
+            builtinsModuleInfo, provider, allProjectScope, project,
+            KotlinEnvironment.coreEnvironment.createPackagePartProvider(allProjectScope)
         )
 
         val firAnalyzerFacade = FirAnalyzerFacade(
