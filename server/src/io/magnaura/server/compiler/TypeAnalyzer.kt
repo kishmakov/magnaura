@@ -1,11 +1,12 @@
 package io.magnaura.server.compiler
 
 import com.intellij.openapi.project.Project
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import io.magnaura.protocol.ProjectFile
 import io.magnaura.server.kotlinFile
 import org.jetbrains.kotlin.analyzer.ModuleInfo
-import org.jetbrains.kotlin.codegen.ClassBuilderFactory
+import org.jetbrains.kotlin.cli.jvm.compiler.TopDownAnalyzerFacadeForJVM
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.fir.analysis.FirAnalyzerFacade
 import org.jetbrains.kotlin.fir.java.FirProjectSessionProvider
@@ -40,17 +41,45 @@ class TypeAnalyzer(projectFiles: List<ProjectFile>) {
     private val project: Project = ktFiles.first().project
 
     private val moduleInfo = FirJvmModuleInfo("module")
+    private val dependenciesInfo = FirJvmModuleInfo(Name.special("<dependencies>"))
 
     fun inferCommandType(): List<String> {
-        val firConfiguration = KotlinEnvironment.firConfiguration
 
-        val provider = FirProjectSessionProvider(project)
+//        val sourcesScope = GlobalSearchScope
+//            .filesScope(project, ktFiles.map { it.virtualFile })
+//            .uniteWith(TopDownAnalyzerFacadeForJVM.AllJavaSourcesInProjectScope(project))
+
+        val sourcesScope = TopDownAnalyzerFacadeForJVM.newModuleSearchScope(project, ktFiles)
+
         val librariesScope = ProjectScope.getLibrariesScope(project)
 
-        val session = FirSessionFactory.createJavaModuleBasedSession(moduleInfo, provider, librariesScope)
+        val provider = FirProjectSessionProvider(project)
 
-        val firAnalyzerFacade = FirAnalyzerFacade(session, firConfiguration.languageVersionSettings, ktFiles)
-        val (moduleFragment, symbolTable, sourceManager, components) = firAnalyzerFacade.convertToIr()
+        val session = FirSessionFactory.createJavaModuleBasedSession(
+            moduleInfo,
+            provider,
+            sourcesScope)
+
+        val librariesPackagePartProvider = KotlinEnvironment
+            .coreEnvironment.createPackagePartProvider(librariesScope)
+
+        FirSessionFactory.createLibrarySession(
+            dependenciesInfo,
+            provider,
+            librariesScope,
+            project,
+            librariesPackagePartProvider
+        )
+
+        val firAnalyzerFacade = FirAnalyzerFacade(
+            session,
+            KotlinEnvironment.firConfiguration.languageVersionSettings,
+            ktFiles)
+
+        val firFiles = firAnalyzerFacade.runResolution()
+
+//        val (moduleFragment, symbolTable, sourceManager, components) = firAnalyzerFacade.convertToIr()
+
         return listOf("Int")
     }
 }
