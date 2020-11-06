@@ -87,10 +87,10 @@ object CompilerClient {
         }
 
         return runBlocking {
-            val analysisResult: ParsedCommand = client.post {
-                url("http://0.0.0.0:8080/compileCommand")
+            val analysisResult: Command.Response = client.post {
+                url("http://0.0.0.0:8080/" + Command.SUBDOMAIN)
                 contentType(ContentType.Application.Json)
-                body = Command(context.md5(), context, command)
+                body = Command.Request(context.md5(), context, command)
             }
 
             analysisResult.declarations

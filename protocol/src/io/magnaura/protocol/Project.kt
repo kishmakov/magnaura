@@ -12,9 +12,3 @@ data class Project(
     val command: ProjectFile? = null
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class Command(
-    val hash: String,
-    val context: String,
-    val command: String
-)
