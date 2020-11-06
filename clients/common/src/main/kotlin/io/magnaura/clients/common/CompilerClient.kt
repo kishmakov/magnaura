@@ -79,9 +79,6 @@ object CompilerClient {
     }
 
     fun executeCommand(command: String, context: String): List<String> {
-        val contextHash = context.md5()
-
-        val wrappedCommand = "fun ${Constants.commandFunction}() = $command"
 
         val client = HttpClient() {
             install(JsonFeature) {
@@ -89,14 +86,11 @@ object CompilerClient {
             }
         }
 
-        val contextFile = ProjectFile(name = "context.kt", text = context.wrapInPackage(contextHash))
-        val commandFile = ProjectFile(name = "command.kt", text = wrappedCommand.wrapInPackage(contextHash))
-
         return runBlocking {
             val analysisResult: ParsedCommand = client.post {
                 url("http://0.0.0.0:8080/compileCommand")
                 contentType(ContentType.Application.Json)
-                body = Project(files = listOf(contextFile), command = commandFile)
+                body = Command(context.md5(), context, command)
             }
 
             analysisResult.declarations

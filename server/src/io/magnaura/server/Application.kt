@@ -97,11 +97,11 @@ fun Application.module(testing: Boolean = false) {
         }
 
         post("/compileCommand") {
-            val inputProject = call.receive<Project>()
+            val inputProject = call.receive<Command>()
 
-            val analyzer = TypeAnalyzer((inputProject.files + inputProject.command).filterNotNull())
+//            val analyzer = TypeAnalyzer((inputProject.files + inputProject.command).filterNotNull())
 
-            call.respond(ParsedCommand(analyzer.inferCommandType()))
+            call.respond(ParsedCommand(listOf("one", "two")))
 
 //            val analyzedFile = with (projectFile) { kotlinFile(name, text) }
 //

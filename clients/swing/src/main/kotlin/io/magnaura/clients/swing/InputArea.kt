@@ -29,6 +29,6 @@ object InputArea: JTextArea(20, 100) {
         border = ELEMENT_BORDER
         addKeyListener(InputKeyListener)
 
-        text = "squareDiff(9, 7)"
+        text = "94.5 - squareDiff(9, 7)"
     }
 }
