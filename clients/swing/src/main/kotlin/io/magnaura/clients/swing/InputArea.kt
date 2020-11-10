@@ -10,7 +10,7 @@ object InputKeyListener: KeyListener {
         if (e != null) {
             if (e.keyCode == KeyEvent.VK_ENTER) {
                 val command = InputArea.text
-                InputArea.text = ""
+//                InputArea.text = ""
                 e.consume()
 
                 handleCommand(command)

@@ -1,16 +1,15 @@
 package io.magnaura.server.compiler
 
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
-import io.magnaura.protocol.ProjectFile
 import io.magnaura.server.kotlinFile
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.cli.jvm.compiler.TopDownAnalyzerFacadeForJVM
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.analysis.FirAnalyzerFacade
+import org.jetbrains.kotlin.fir.declarations.FirProperty
 import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.expressions.FirBlock
 import org.jetbrains.kotlin.fir.expressions.FirExpression
@@ -110,10 +109,18 @@ class KtCommandVisitor : KtVisitorVoid() {
     }
 }
 
-class TypeAnalyzer(projectFiles: List<ProjectFile>) {
-    private val ktFiles: List<KtFile> = projectFiles.map { kotlinFile(it.name, it.text) }
+fun String.wrapInPackage(hash: String): String {
+    return "package package_$hash\n\n$this"
+}
 
-    private val project: Project = ktFiles.first().project
+class CommandProcessor(private val hash: String, private val context: String, private val command: String) {
+    private fun inferenceFile(): KtFile {
+        val content = "$context\n\nval $INFERENCE_VAL_NAME = $command".wrapInPackage(hash)
+        return kotlinFile("inference_$hash.kt", content)
+    }
+
+//    private val ktFiles: List<KtFile> = projectFiles.map { kotlinFile(it.name, it.text) }
+
 
     private val builtinsModuleInfo = FirJvmModuleInfo(Name.special("<built-ins>"))
 
@@ -123,7 +130,60 @@ class TypeAnalyzer(projectFiles: List<ProjectFile>) {
 
     private val dependenciesInfo = FirJvmModuleInfo(Name.special("<dependencies>"))
 
-    fun inferCommandType(): List<String> {
+    fun inferCommandType(): String {
+        val ktFile = inferenceFile()
+        val project = ktFile.project
+
+        val sourcesScope = TopDownAnalyzerFacadeForJVM.newModuleSearchScope(project, listOf(ktFile))
+
+        val librariesScope = ProjectScope.getLibrariesScope(project)
+
+        val provider = FirProjectSessionProvider(project)
+
+        val session = FirSessionFactory.createJavaModuleBasedSession(
+            moduleInfo,
+            provider,
+            sourcesScope)
+
+        val librariesPackagePartProvider = KotlinEnvironment
+            .coreEnvironment.createPackagePartProvider(librariesScope)
+
+        FirSessionFactory.createLibrarySession(
+            dependenciesInfo,
+            provider,
+            librariesScope,
+            project,
+            librariesPackagePartProvider
+        )
+
+        val allProjectScope = GlobalSearchScope.allScope(project)
+
+        FirSessionFactory.createLibrarySession(
+            builtinsModuleInfo, provider, allProjectScope, project,
+            KotlinEnvironment.coreEnvironment.createPackagePartProvider(allProjectScope)
+        )
+
+        val firAnalyzerFacade = FirAnalyzerFacade(
+            session,
+            KotlinEnvironment.firConfiguration.languageVersionSettings,
+            listOf(ktFile))
+
+        val firFiles = firAnalyzerFacade.runResolution()
+
+        val valDeclaration = firFiles[0].declarations.first {
+            it is FirProperty && it.name.toString() == INFERENCE_VAL_NAME
+        } as FirProperty
+
+        val valType = valDeclaration.returnTypeRef as FirResolvedTypeRef
+
+//        val firCommandVisitor = FirCommandVisitor()
+//        firFiles[0].accept(firCommandVisitor)
+//        firCommandVisitor.elements.forEach { println("fir> $it") }
+
+        return valType.type.toString()
+    }
+
+    /*fun inferCommandType2(): List<String> {
         val sourcesScope = TopDownAnalyzerFacadeForJVM.newModuleSearchScope(project, ktFiles)
 
         val librariesScope = ProjectScope.getLibrariesScope(project)
@@ -169,5 +229,9 @@ class TypeAnalyzer(projectFiles: List<ProjectFile>) {
 //        val (moduleFragment, symbolTable, sourceManager, components) = firAnalyzerFacade.convertToIr()
 
         return listOf(ktFiles[1].text) + ktCommandVisitor.elements + ktCommandVisitor.variables
+    }*/
+
+    companion object {
+        const val INFERENCE_VAL_NAME = "INFER_VAL"
     }
 }
