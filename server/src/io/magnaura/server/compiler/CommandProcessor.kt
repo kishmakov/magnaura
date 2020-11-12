@@ -1,8 +1,11 @@
 package io.magnaura.server.compiler
 
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiWhiteSpace
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
+import io.magnaura.platform.SupportedType
 import io.magnaura.server.kotlinFile
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.cli.jvm.compiler.TopDownAnalyzerFacadeForJVM
@@ -22,6 +25,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.stubs.elements.KtStubElementTypes
 import org.jetbrains.kotlin.resolve.PlatformDependentAnalyzerServices
 import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatformAnalyzerServices
 
@@ -74,39 +78,45 @@ class FirCommandVisitor : FirVisitorVoid() {
     }
 }
 
+class ParsedInput(val name: String, val type: SupportedType, val value: String)
+
 class KtCommandVisitor : KtVisitorVoid() {
     private var counter: Int = 0
-
     val elements = ArrayList<String>()
-    val variables = ArrayList<String>()
-
-    override fun visitNamedFunction(function: KtNamedFunction) {
-        elements += "fun ${function.name}() {"
-        super.visitNamedFunction(function)
-        elements += "}"
-    }
+    val inputs = ArrayList<ParsedInput>()
 
     override fun visitConstantExpression(expression: KtConstantExpression) {
-        val newName = "a$counter"
-        counter += 1
-        elements += newName
-        variables += "$newName = ${expression.text}"
+        val type = when (expression.elementType) {
+            KtStubElementTypes.BOOLEAN_CONSTANT -> SupportedType.JavaBoolean
+            KtStubElementTypes.FLOAT_CONSTANT -> SupportedType.JavaDouble
+            KtStubElementTypes.INTEGER_CONSTANT -> SupportedType.JavaInt
+            KtStubElementTypes.CHARACTER_CONSTANT -> SupportedType.JavaString
+            else -> SupportedType.None
+        }
+
+        val input = ParsedInput("i${counter++}", type, expression.text)
+
+        inputs += input
+
+        elements += input.name
     }
 
     override fun visitSimpleNameExpression(expression: KtSimpleNameExpression) {
-        elements += "-> ${expression.getReferencedName()}"
-        super.visitSimpleNameExpression(expression)
+        elements += expression.getReferencedName()
+//        super.visitSimpleNameExpression(expression)
     }
 
     override fun visitElement(element: PsiElement) {
-//        elements += (element::class.simpleName ?: "")
-        element.acceptChildren(this)
+        if (element is LeafPsiElement && element !is PsiWhiteSpace) {
+            elements += element.text
+        } else {
+            element.acceptChildren(this)
+        }
     }
 
-    override fun visitKtElement(element: KtElement) {
-//        elements += (element::class.simpleName ?: "")
-        element.acceptChildren(this)
-    }
+//    override fun visitKtElement(element: KtElement) {
+//        element.acceptChildren(this)
+//    }
 }
 
 fun String.wrapInPackage(hash: String): String {
@@ -114,14 +124,6 @@ fun String.wrapInPackage(hash: String): String {
 }
 
 class CommandProcessor(private val hash: String, private val context: String, private val command: String) {
-    private fun inferenceFile(): KtFile {
-        val content = "$context\n\nval $INFERENCE_VAL_NAME = $command".wrapInPackage(hash)
-        return kotlinFile("inference_$hash.kt", content)
-    }
-
-//    private val ktFiles: List<KtFile> = projectFiles.map { kotlinFile(it.name, it.text) }
-
-
     private val builtinsModuleInfo = FirJvmModuleInfo(Name.special("<built-ins>"))
 
     private val moduleInfo = FirJvmModuleInfo("module").apply {
@@ -131,7 +133,7 @@ class CommandProcessor(private val hash: String, private val context: String, pr
     private val dependenciesInfo = FirJvmModuleInfo(Name.special("<dependencies>"))
 
     fun inferCommandType(): String {
-        val ktFile = inferenceFile()
+        val ktFile = fileForCommandType()
         val project = ktFile.project
 
         val sourcesScope = TopDownAnalyzerFacadeForJVM.newModuleSearchScope(project, listOf(ktFile))
@@ -170,17 +172,18 @@ class CommandProcessor(private val hash: String, private val context: String, pr
 
         val firFiles = firAnalyzerFacade.runResolution()
 
-        val valDeclaration = firFiles[0].declarations.first {
-            it is FirProperty && it.name.toString() == INFERENCE_VAL_NAME
+        val property = firFiles[0].declarations.first {
+            it is FirProperty && it.name.toString() == MOCK_VAL_NAME
         } as FirProperty
 
-        val valType = valDeclaration.returnTypeRef as FirResolvedTypeRef
+        return (property.returnTypeRef as FirResolvedTypeRef).type.toString()
+    }
 
-//        val firCommandVisitor = FirCommandVisitor()
-//        firFiles[0].accept(firCommandVisitor)
-//        firCommandVisitor.elements.forEach { println("fir> $it") }
+    fun inferCommandInputs(): List<String> {
+        val commandVisitor = KtCommandVisitor()
+        fileForCommandInputs().accept(commandVisitor)
 
-        return valType.type.toString()
+        return commandVisitor.elements
     }
 
     /*fun inferCommandType2(): List<String> {
@@ -231,7 +234,16 @@ class CommandProcessor(private val hash: String, private val context: String, pr
         return listOf(ktFiles[1].text) + ktCommandVisitor.elements + ktCommandVisitor.variables
     }*/
 
+    private fun fileForCommandType(): KtFile {
+        val content = "$context\n\nval $MOCK_VAL_NAME = $command".wrapInPackage(hash)
+        return kotlinFile("command_type_$hash.kt", content)
+    }
+
+    private fun fileForCommandInputs(): KtFile {
+        return kotlinFile("command_inputs_$hash.kt", "val $MOCK_VAL_NAME = $command")
+    }
+
     companion object {
-        const val INFERENCE_VAL_NAME = "INFER_VAL"
+        const val MOCK_VAL_NAME = "MOCK_VAL"
     }
 }

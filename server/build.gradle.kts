@@ -52,6 +52,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
     implementation(project(":protocol"))
+    implementation(project(":platform"))
 
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
 }

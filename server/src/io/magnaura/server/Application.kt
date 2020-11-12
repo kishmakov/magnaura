@@ -100,20 +100,13 @@ fun Application.module(testing: Boolean = false) {
             val (hash, context, command) = call.receive<Command.Request>()
             val processor = CommandProcessor(hash, context, command)
 
-            call.respond(Command.Response(listOf(processor.inferCommandType())))
+            val commandType = processor.inferCommandType()
+            val commandInputs = processor.inferCommandInputs()
 
-//            val analyzedFile = with (projectFile) { kotlinFile(name, text) }
-//
-//            val result = HashSet<String>(0)
-//
-//            analyzedFile.accept(object : PsiRecursiveElementVisitor() {
-//                    override fun visitElement(element: PsiElement) {
-//                        result.add(element.text)
-//                        super.visitElement(element)
-//                    }
-//                })
-
-//            call.respond(ParsedCommand(result.toList()))
+            call.respond(Command.Response(listOf(
+                "command type = $commandType",
+                "command = " + commandInputs.joinToString(separator = "")
+            )))
         }
 
 
