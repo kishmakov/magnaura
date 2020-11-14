@@ -100,13 +100,14 @@ fun Application.module(testing: Boolean = false) {
             val (hash, context, command) = call.receive<Command.Request>()
             val processor = CommandProcessor(hash, context, command)
 
-            val commandType = processor.inferCommandType()
-            val commandInputs = processor.inferCommandInputs()
+            val commandInputs = processor.inputs.map { input ->
+                input.name + ": " + input.type.toString()
+            }
 
             call.respond(Command.Response(listOf(
-                "command type = $commandType",
-                "command = " + commandInputs.joinToString(separator = "")
-            )))
+                "command type = ${processor.commandType}",
+                "command generalization = ${processor.generalizedCommand}"
+            ) + commandInputs))
         }
 
 
