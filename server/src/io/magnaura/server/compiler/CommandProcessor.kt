@@ -7,6 +7,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.stubs.IStubElementType
 import io.magnaura.platform.SupportedType
+import io.magnaura.protocol.Constants
 import io.magnaura.server.kotlinFile
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.cli.jvm.compiler.TopDownAnalyzerFacadeForJVM
@@ -113,15 +114,22 @@ class CommandProcessor {
         generalizedCommand = commandVisitor.elements.drop(3).joinToString(separator = "")
     }
 
-    private fun contextFile(): KtFile = kotlinFile("context_$hash.kt", context.wrapInPackage(hash))
+    fun fileForCompilation(): KtFile {
+        val body = buildString {
+            appendLine(context)
+            appendLine("object ${Constants.commandComputationClass} {")
 
-    /*private fun commandFile(): KtFile {
-        val argumentBlock = inputs.map {
-            it.name + ": " + it.type.toString()
-        }.joinToString(separator = ",")
+            inputs.forEach {
+                appendLine("  private var ${it.name}: ${it.type} = ${it.value}")
+                appendLine("  fun set_${it.name}(v: ${it.type}) { ${it.name} = v }")
+            }
 
-        return "fun "
-    }*/
+            appendLine("  fun ${Constants.commandComputationMethod}() = $generalizedCommand")
+            appendLine("}")
+        }
+
+        return kotlinFile("request_$hash.kt", body.wrapInPackage(hash))
+    }
 
     private fun inferCommandType(): ConeKotlinType {
         val ktFile = fileForCommandType()

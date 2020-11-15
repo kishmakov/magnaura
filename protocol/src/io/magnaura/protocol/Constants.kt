@@ -1,7 +1,6 @@
 package io.magnaura.protocol
 
 object Constants {
-    const val className = "Computer"
-    const val functionName = "square"
-    const val commandFunction = "commandFunction"
+    const val commandComputationClass = "CommandComputer"
+    const val commandComputationMethod = "compute"
 }

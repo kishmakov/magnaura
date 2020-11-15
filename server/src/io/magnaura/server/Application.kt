@@ -100,14 +100,12 @@ fun Application.module(testing: Boolean = false) {
             val (hash, context, command) = call.receive<Command.Request>()
             val processor = CommandProcessor(hash, context, command)
 
-            val commandInputs = processor.inputs.map { input ->
-                input.name + ": " + input.type.toString()
-            }
+            val fileForCompilation = processor.fileForCompilation()
 
             call.respond(Command.Response(listOf(
                 "command type = ${processor.commandType}",
-                "command generalization = ${processor.generalizedCommand}"
-            ) + commandInputs))
+                "command computer = ${fileForCompilation.text}"
+            )))
         }
 
 

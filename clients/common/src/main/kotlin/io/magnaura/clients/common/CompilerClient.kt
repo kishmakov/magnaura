@@ -30,7 +30,7 @@ object CompilerClient {
                 import io.magnaura.library.sum
                 
                 class $className {
-                    fun ${Constants.functionName}(num: Int): Int {  
+                    fun ${Constants.commandComputationMethod}(num: Int): Int {  
                         $text
                     }
                 }
@@ -61,7 +61,7 @@ object CompilerClient {
     }
 
     fun compile(text: String): SquareFunction {
-        val className = Constants.className + "_" + text.md5()
+        val className = Constants.commandComputationClass + "_" + text.md5()
 
         if (!loader.hasClass(className)) {
             for ((name, bytes) in doCompile(className, text)) {
@@ -70,7 +70,7 @@ object CompilerClient {
         }
 
         val klass = loader.loadClass(className)
-        val method = klass.getMethod(Constants.functionName, Int::class.java)
+        val method = klass.getMethod(Constants.commandComputationMethod, Int::class.java)
         val instance = klass.getDeclaredConstructor().newInstance()
 
         return { num: Int ->
