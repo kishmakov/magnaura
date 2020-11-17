@@ -102,10 +102,28 @@ fun Application.module(testing: Boolean = false) {
 
             val fileForCompilation = processor.fileForCompilation()
 
+            val analyser = ErrorAnalyzer(listOf(fileForCompilation))
+
+            with (analyser.messageCollector) {
+                if (hasErrors()) {
+                    call.respond(Command.Response(listOf(
+                        "errors = " + errors().joinToString(", "),
+                        "warnings = " + warnings().joinToString(", ")
+                    )))
+
+                    call.respond(CompilationResult(errors = errors(), warnings = warnings()))
+                    return@post
+                }
+            }
+
+            val compilation = KotlinCompiler(analyser).compile()
+
+            val compiledClasses = ArrayList<CompiledClass>()
+
             call.respond(Command.Response(listOf(
                 "command type = ${processor.commandType}",
                 "command computer = ${fileForCompilation.text}"
-            )))
+            ) + compilation.files.map { "${it.key} -> ${it.value.size}" } ))
         }
 
 

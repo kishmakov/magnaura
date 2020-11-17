@@ -146,8 +146,9 @@ class CommandProcessor {
             provider,
             sourcesScope)
 
-        val librariesPackagePartProvider = KotlinEnvironment
-            .coreEnvironment.createPackagePartProvider(librariesScope)
+        val coreEnvironment = KotlinEnvironment.coreEnvironment()
+
+        val librariesPackagePartProvider = coreEnvironment.createPackagePartProvider(librariesScope)
 
         FirSessionFactory.createLibrarySession(
             dependenciesInfo,
@@ -161,7 +162,7 @@ class CommandProcessor {
 
         FirSessionFactory.createLibrarySession(
             builtinsModuleInfo, provider, allProjectScope, project,
-            KotlinEnvironment.coreEnvironment.createPackagePartProvider(allProjectScope)
+            coreEnvironment.createPackagePartProvider(allProjectScope)
         )
 
         val firAnalyzerFacade = FirAnalyzerFacade(

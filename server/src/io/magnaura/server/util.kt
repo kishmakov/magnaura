@@ -18,7 +18,7 @@ fun text(): String {
 }
 
 fun kotlinFile(name: String, content: String): KtFile =
-    (PsiFileFactory.getInstance(KotlinEnvironment.coreEnvironment.project) as PsiFileFactoryImpl)
+    (PsiFileFactory.getInstance(KotlinEnvironment.coreEnvironment().project) as PsiFileFactoryImpl)
         .trySetupPsiForFile(
             LightVirtualFile(
                 if (name.endsWith(".kt")) name else "$name.kt",

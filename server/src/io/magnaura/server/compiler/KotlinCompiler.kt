@@ -20,7 +20,7 @@ class KotlinCompiler(private val analyzer: ErrorAnalyzer) {
             analyzer.analysisResult.moduleDescriptor,
             analyzer.analysisResult.bindingContext,
             analyzer.files,
-            KotlinEnvironment.coreEnvironment.configuration
+            KotlinEnvironment.coreEnvironment().configuration
         ).build()
 
         KotlinCodegenFacade.compileCorrectFiles(generationState)

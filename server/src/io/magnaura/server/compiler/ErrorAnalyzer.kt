@@ -40,9 +40,11 @@ class ErrorAnalyzer(val files: List<KtFile>) {
 
     val messageCollector = AnalyzerMessageCollector()
 
+    private val coreEnvironment = KotlinEnvironment.coreEnvironment()
+
     private val analyzerWithCompilerReport = AnalyzerWithCompilerReport(
         messageCollector,
-        KotlinEnvironment.coreEnvironment.configuration.languageVersionSettings
+        coreEnvironment.configuration.languageVersionSettings
     )
 
     val analysisResult: AnalysisResult
@@ -54,8 +56,8 @@ class ErrorAnalyzer(val files: List<KtFile>) {
                 project,
                 files,
                 NoScopeRecordCliBindingTrace(),
-                KotlinEnvironment.coreEnvironment.configuration,
-                KotlinEnvironment.coreEnvironment::createPackagePartProvider,
+                coreEnvironment.configuration,
+                coreEnvironment::createPackagePartProvider,
                 sourceModuleSearchScope = TopDownAnalyzerFacadeForJVM.newModuleSearchScope(project, files)
             )
         }

@@ -53,7 +53,7 @@ object KotlinEnvironment {
         }
     }
 
-    private val compilerConfiguration = configurationBillet().apply {
+    private fun compilerConfiguration() = configurationBillet().apply {
         with(arguments) {
             put(JVMConfigurationKeys.DISABLE_PARAM_ASSERTIONS, noParamAssertions)
             put(JVMConfigurationKeys.DISABLE_CALL_ASSERTIONS, noCallAssertions)
@@ -64,9 +64,9 @@ object KotlinEnvironment {
         put(JVMConfigurationKeys.IR, true)
     }
 
-    val coreEnvironment = KotlinCoreEnvironment.createForProduction(
+    fun coreEnvironment() = KotlinCoreEnvironment.createForProduction(
         parentDisposable = Disposer.newDisposable(),
-        configuration = compilerConfiguration,
+        configuration = compilerConfiguration(),
         configFiles = EnvironmentConfigFiles.JVM_CONFIG_FILES
     )
 }
