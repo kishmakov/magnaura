@@ -30,8 +30,6 @@ import io.magnaura.server.storage.Storage
 import io.magnaura.server.storage.registerLibraryClasses
 import org.slf4j.event.Level
 
-fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
-
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
@@ -49,12 +47,11 @@ fun Application.module(testing: Boolean = false) {
         filter { call -> call.request.path().startsWith("/compiler") }
     }
 
-
     val client = HttpClient() {
     }
 
-    val libraryJars = listJars(environment.config.property("magnaura.jvm.libraries")?.getString())
-    val compilerJars = listJars(environment.config.property("magnaura.jvm.kotlinCompilerJars")?.getString())
+    val libraryJars = listJars(System.getProperty("magnaura.jvm.libraries"))
+    val compilerJars = listJars(System.getProperty("magnaura.jvm.kotlinCompilerJars"))
 
     val libraryIds = registerLibraryClasses(libraryJars)
 

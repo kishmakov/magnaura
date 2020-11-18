@@ -19,8 +19,6 @@ application {
 }
 
 dependencies {
-    val coroutines_in_application: String by project
-
     val kotlin_version: String by project
     val ktor_version: String by project
     val logback_version: String by project
@@ -30,7 +28,6 @@ dependencies {
     jvmCompilerDependency("org.hamcrest:hamcrest:2.2")
 
     // Kotlin libraries
-    jvmCompilerDependency("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_in_application")
     jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_in_application")
     jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_in_application")
     jvmCompilerDependency("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_in_application")
@@ -71,7 +68,7 @@ sourceSets {
 
 val applicationProperties = computeProperties()
 
-fun generateConfig(properties: Map<String, String>): String {
+fun generateConfig(): String {
     val port = "\${?PORT}"
     return """
     ktor {
@@ -83,15 +80,13 @@ fun generateConfig(properties: Map<String, String>): String {
             modules = [ io.magnaura.server.ApplicationKt.module ]
         }
     }     
-    """.trimIndent() + "\n" +
-            properties.map { "${it.key} : ${it.value}" }.joinToString("\n")
-
+    """.trimIndent()
 }
 
 fun computeProperties(): Map<String, String> {
     val libsJar = project(":library").tasks.findByName("jar")!!.outputs.files.singleFile
     return mapOf(
-        "magnaura.jvm.kotlinCompilerJars" to "$projectDir/$kotlin_in_application",
+        "magnaura.jvm.kotlinCompilerJars" to projectDir.resolve(kotlin_in_application).toString(),
         "magnaura.jvm.libraries" to libsJar.parent.toString()
     )
 }
@@ -100,7 +95,7 @@ fun buildConfigFile() {
     projectDir.resolve("resources/application.conf").apply{
         println("Generate config into $absolutePath")
         parentFile.mkdirs()
-        writeText(generateConfig(applicationProperties))
+        writeText(generateConfig())
     }
 }
 
@@ -112,6 +107,12 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 
 tasks.withType<org.gradle.api.tasks.testing.Test> {
     dependsOn(copyJVMDependencies)
+    for ((key, value) in applicationProperties) {
+        systemProperty(key, value)
+    }
+}
+
+tasks.withType<JavaExec> {
     for ((key, value) in applicationProperties) {
         systemProperty(key, value)
     }
