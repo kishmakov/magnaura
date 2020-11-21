@@ -1,7 +1,8 @@
 package io.magnaura.server.compiler
 
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import io.magnaura.server.Component
+import io.magnaura.server.Properties
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -13,7 +14,11 @@ import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.js.config.JSConfigurationKeys
 import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.*
+
 
 class ServerCollector: MessageCollector {
     override fun clear() {
@@ -28,18 +33,39 @@ class ServerCollector: MessageCollector {
 
 }
 
-object KotlinEnvironment {
+//val libraryIds = registerLibraryClasses(libraryJars)
+
+object KotlinEnvironment: Component() {
+    override val name = "Kotlin Environment"
+
+    private val classPath = arrayListOf<File>()
+
+    init {
+        val librariesJars = getProperty(Properties.LIBRARIES_JARS)
+        val compilerJars  = getProperty(Properties.COMPILER_JARS)
+
+        try {
+            collectJarsFrom(librariesJars)
+            collectJarsFrom(compilerJars)
+        } catch (e: IOException) {
+            errorMessage = "Failed to load jars: " + e.message
+        }
+
+        updateStatus()
+    }
+
+    private fun collectJarsFrom(directory: String) {
+        Files.walk(Paths.get(directory))
+            .filter { Files.isRegularFile(it) && it.toFile().extension == "jar" }
+            .forEach { classPath += it.toFile() }
+    }
+
     private val arguments = K2JVMCompilerArguments().apply {
         jvmTarget = JvmTarget.JVM_1_8.description
     }
 
-    private val classPath = arrayListOf<File>()
-
     private val messageCollector = ServerCollector()
 
-    fun appendToClassPath(files: List<File>) {
-        classPath.addAll(files)
-    }
 
     private fun configurationBillet() = CompilerConfiguration().apply {
         addJvmClasspathRoots(classPath)

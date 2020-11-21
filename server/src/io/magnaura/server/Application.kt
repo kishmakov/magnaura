@@ -1,33 +1,27 @@
 package io.magnaura.server
 
-import io.ktor.application.Application
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.client.HttpClient
-import io.ktor.features.CallLogging
-import io.ktor.features.ContentNegotiation
-import io.ktor.http.ContentType
-import io.ktor.http.content.ByteArrayContent
-import io.ktor.http.content.resources
-import io.ktor.http.content.static
-import io.ktor.jackson.jackson
+import io.ktor.application.*
+import io.ktor.client.*
+import io.ktor.features.*
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.jackson.*
 import io.ktor.locations.Location
 import io.ktor.locations.Locations
 import io.ktor.locations.get
-import io.ktor.request.path
-import io.ktor.request.receive
-import io.ktor.response.respond
-import io.ktor.response.respondText
+import io.ktor.request.*
+import io.ktor.response.*
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
-import io.magnaura.protocol.*
+import io.magnaura.protocol.Command
+import io.magnaura.protocol.CompilationResult
+import io.magnaura.protocol.CompiledClass
+import io.magnaura.protocol.Project
+import io.magnaura.server.compiler.CommandProcessor
 import io.magnaura.server.compiler.ErrorAnalyzer
 import io.magnaura.server.compiler.KotlinCompiler
-import io.magnaura.server.compiler.KotlinEnvironment
-import io.magnaura.server.compiler.CommandProcessor
 import io.magnaura.server.storage.Storage
-import io.magnaura.server.storage.registerLibraryClasses
 import org.slf4j.event.Level
 
 @Suppress("unused") // Referenced in application.conf
@@ -49,14 +43,6 @@ fun Application.module(testing: Boolean = false) {
 
     val client = HttpClient() {
     }
-
-    val libraryJars = listJars(System.getProperty("magnaura.jvm.libraries"))
-    val compilerJars = listJars(System.getProperty("magnaura.jvm.kotlinCompilerJars"))
-
-    val libraryIds = registerLibraryClasses(libraryJars)
-
-    KotlinEnvironment.appendToClassPath(libraryJars)
-    KotlinEnvironment.appendToClassPath(compilerJars)
 
     routing {
         get("/") {
@@ -84,9 +70,9 @@ fun Application.module(testing: Boolean = false) {
                 compiledClasses.add(CompiledClass(name, index))
             }
 
-            for ((name, index) in libraryIds) {
-                compiledClasses.add(CompiledClass(name, index))
-            }
+//            for ((name, index) in libraryIds) {
+//                compiledClasses.add(CompiledClass(name, index))
+//            }
 
             call.respond(CompilationResult(
                 compiledClasses,

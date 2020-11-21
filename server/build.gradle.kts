@@ -15,7 +15,7 @@ val copyJVMDependencies by tasks.creating(Copy::class) {
 }
 
 application {
-    mainClassName = "io.magnaura.server.StarterKt"
+    mainClassName = "io.magnaura.server.MainKt"
 }
 
 dependencies {
@@ -84,15 +84,11 @@ fun generateConfig(): String {
 }
 
 fun computeProperties(): Map<String, String> {
-    val libsJar = project(":library").tasks.findByName("jar")!!.outputs.files.singleFile
     val librariesJars = project(":library").tasks.withType(Jar::class).map { it.outputs.files.singleFile }
-
 
     return mapOf(
         "magnaura.jvm.kotlinCompilerJars" to projectDir.resolve(kotlin_in_application).toString(),
-        "magnaura.jvm.libraries" to libsJar.parent.toString(),
         "magnaura.jvm.librariesJars" to librariesJars.joinToString(File.pathSeparator)
-
     )
 }
 
