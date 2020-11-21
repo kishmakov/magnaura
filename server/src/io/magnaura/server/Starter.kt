@@ -10,7 +10,7 @@ fun main(args: Array<String>) {
         with (component) {
             when (status) {
                 is ComponentStatus.Failed -> {
-                    println(">>> Failed to load $name, reason: $status")
+                    println(">>> $name is not loaded: $status")
                     return
                 }
                 ComponentStatus.OK -> {
