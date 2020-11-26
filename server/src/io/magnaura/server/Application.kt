@@ -89,12 +89,8 @@ fun Application.module(testing: Boolean = false) {
 
             with (analyser.messageCollector) {
                 if (hasErrors()) {
-                    call.respond(Command.Response(listOf(
-                        "errors = " + errors().joinToString(", "),
-                        "warnings = " + warnings().joinToString(", ")
-                    )))
-
-                    call.respond(CompilationResult(errors = errors(), warnings = warnings()))
+                    val compilationResult = Command.Failure(errors = errors() + warnings())
+                    call.respond(Command.Response(failure = compilationResult))
                     return@post
                 }
             }
@@ -103,10 +99,11 @@ fun Application.module(testing: Boolean = false) {
 
             val compiledClasses = ArrayList<CompiledClass>()
 
-            call.respond(Command.Response(listOf(
-                "command type = ${processor.commandType}",
-                "command computer = ${fileForCompilation.text}"
-            ) + compilation.files.map { "${it.key} -> ${it.value.size}" } ))
+            val compilationResult = Command.Success(processor.commandType.id,
+                listOf("command computer = ${fileForCompilation.text}") +
+                    compilation.files.map { "${it.key} -> ${it.value.size}" })
+
+            call.respond(Command.Response(success = compilationResult))
         }
 
 

@@ -9,6 +9,5 @@ sealed class SupportedType(val id: String) {
     object JavaDouble : SupportedType("Double")
     object JavaInt: SupportedType("Int")
     object JavaString: SupportedType("String")
-
 }
 

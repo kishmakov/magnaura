@@ -16,5 +16,20 @@ object Command {
     )
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    data class Response(val declarations: List<String> = emptyList())
+    data class Success(
+        val commandType: String,
+        val declarations: List<String> = emptyList()
+    )
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class Failure(
+        val errors: List<String> = emptyList()
+    )
+
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class Response(
+        val success: Success? = null,
+        val failure: Failure? = null
+    )
 }

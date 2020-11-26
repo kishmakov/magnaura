@@ -91,26 +91,20 @@ class KtCommandVisitor(private val inputs: MutableList<ParsedInput>) : KtVisitor
     }
 }
 
-class CommandProcessor {
-    private val hash: String
-    private val context: String
-    private val command: String
-
+class CommandProcessor(
+    private val hash: String,
+    private val context: String,
+    private val command: String)
+{
     val inputs = ArrayList<ParsedInput>()
     val commandType: SupportedType
 
     private val generalizedCommand: String
 
-    constructor(hash: String, context: String, command: String) {
-        this.hash = hash
-        this.context = context
-        this.command = command
-
+    init {
         commandType = inferCommandType().toSupportedType()
-
         val commandVisitor = KtCommandVisitor(inputs)
         fileForCommandInputs().accept(commandVisitor)
-
         generalizedCommand = commandVisitor.elements.drop(3).joinToString(separator = "")
     }
 

@@ -93,7 +93,11 @@ object CompilerClient {
                 body = Command.Request(context.md5(), context, command)
             }
 
-            analysisResult.declarations
+            when {
+                analysisResult.failure != null -> analysisResult.failure!!.errors
+                analysisResult.success != null -> analysisResult.success!!.declarations
+                else -> listOf("Unknown response")
+            }
         }
     }
 }
