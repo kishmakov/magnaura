@@ -15,12 +15,9 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
 import io.magnaura.protocol.Command
-import io.magnaura.protocol.CompilationResult
 import io.magnaura.protocol.CompiledClass
 import io.magnaura.protocol.Project
-import io.magnaura.server.compiler.CommandProcessor
-import io.magnaura.server.compiler.ErrorAnalyzer
-import io.magnaura.server.compiler.KotlinCompiler
+import io.magnaura.server.handles.compileCommand
 import io.magnaura.server.storage.Storage
 import org.slf4j.event.Level
 
@@ -49,63 +46,41 @@ fun Application.module(testing: Boolean = false) {
             call.respondText(text(), contentType = ContentType.Text.Plain)
         }
 
-        post("/compiler") {
-            val project = call.receive<Project>()
-
-            val analyser = ErrorAnalyzer(project.files.map { kotlinFile(it.name, it.text) })
-
-            with (analyser.messageCollector) {
-                if (hasErrors()) {
-                    call.respond(CompilationResult(errors = errors(), warnings = warnings()))
-                    return@post
-                }
-            }
-
-            val compilation = KotlinCompiler(analyser).compile()
-
-            val compiledClasses = ArrayList<CompiledClass>()
-
-            for ((name, bytes) in compilation.files) {
-                val index = Storage.registerClass(bytes)
-                compiledClasses.add(CompiledClass(name, index))
-            }
+//        post("/compiler") {
+//            val project = call.receive<Project>()
+//
+//            val analyser = ErrorAnalyzer(project.files.map { kotlinFile(it.name, it.text) })
+//
+//            with (analyser.messageCollector) {
+//                if (hasErrors()) {
+//                    call.respond(CompilationResult(errors = errors(), warnings = warnings()))
+//                    return@post
+//                }
+//            }
+//
+//            val compilation = KotlinCompiler(analyser).compile()
+//
+//            val compiledClasses = ArrayList<CompiledClass>()
+//
+//            for ((name, bytes) in compilation.files) {
+//                val index = Storage.registerClass(bytes)
+//                compiledClasses.add(CompiledClass(name, index))
+//            }
 
 //            for ((name, index) in libraryIds) {
 //                compiledClasses.add(CompiledClass(name, index))
 //            }
 
-            call.respond(CompilationResult(
-                compiledClasses,
-                warnings = analyser.messageCollector.warnings()))
-        }
+//            call.respond(CompilationResult(
+//                compiledClasses,
+//                warnings = analyser.messageCollector.warnings()))
+//        }
 
         post(Command.SUBDOMAIN) {
             val (hash, context, command) = call.receive<Command.Request>()
-            val processor = CommandProcessor(hash, context, command)
-
-            val fileForCompilation = processor.fileForCompilation()
-
-            val analyser = ErrorAnalyzer(listOf(fileForCompilation))
-
-            with (analyser.messageCollector) {
-                if (hasErrors()) {
-                    val compilationResult = Command.Failure(errors = errors() + warnings())
-                    call.respond(Command.Response(failure = compilationResult))
-                    return@post
-                }
-            }
-
-            val compilation = KotlinCompiler(analyser).compile()
-
-            val compiledClasses = ArrayList<CompiledClass>()
-
-            val compilationResult = Command.Success(processor.commandType.id,
-                listOf("command computer = ${fileForCompilation.text}") +
-                    compilation.files.map { "${it.key} -> ${it.value.size}" })
-
-            call.respond(Command.Response(success = compilationResult))
+            val result = compileCommand(hash, context, command).toProtocolResponse()
+            call.respond(result)
         }
-
 
         // Static feature. Try to access `/static/ktor_logo.svg`
         static("/static") {

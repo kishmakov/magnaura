@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 private const val DOMAIN = "compile"
 
 object Command {
-
     const val SUBDOMAIN = "$DOMAIN/command"
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -25,7 +24,6 @@ object Command {
     data class Failure(
         val errors: List<String> = emptyList()
     )
-
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Response(

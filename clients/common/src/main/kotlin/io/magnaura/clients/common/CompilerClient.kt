@@ -95,7 +95,7 @@ object CompilerClient {
 
             when {
                 analysisResult.failure != null -> analysisResult.failure!!.errors
-                analysisResult.success != null -> analysisResult.success!!.declarations
+                analysisResult.success != null -> listOf(analysisResult.success!!.commandType) + analysisResult.success!!.declarations
                 else -> listOf("Unknown response")
             }
         }
