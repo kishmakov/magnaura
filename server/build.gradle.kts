@@ -68,21 +68,6 @@ sourceSets {
 
 val applicationProperties = computeProperties()
 
-fun generateConfig(): String {
-    val port = "\${?PORT}"
-    return """
-    ktor {
-        deployment {
-            port = 8080
-            port = $port
-        }
-        application {
-            modules = [ io.magnaura.server.ApplicationKt.module ]
-        }
-    }     
-    """.trimIndent()
-}
-
 fun computeProperties(): Map<String, String> {
     val librariesJars = project(":library").tasks.withType(Jar::class).map { it.outputs.files.singleFile }
 
@@ -92,18 +77,9 @@ fun computeProperties(): Map<String, String> {
     )
 }
 
-fun buildConfigFile() {
-    projectDir.resolve("resources/application.conf").apply{
-        println("Generate config into $absolutePath")
-        parentFile.mkdirs()
-        writeText(generateConfig())
-    }
-}
-
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     dependsOn(":library:build")
     dependsOn(copyJVMDependencies)
-    buildConfigFile()
 }
 
 tasks.withType<org.gradle.api.tasks.testing.Test> {
