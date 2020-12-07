@@ -1,45 +1,18 @@
 package io.magnaura.server
 
 import io.ktor.application.*
-import io.ktor.client.*
-import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.jackson.*
-import io.ktor.locations.Location
-import io.ktor.locations.Locations
-import io.ktor.locations.get
+import io.ktor.locations.*
 import io.ktor.request.*
 import io.ktor.response.*
-import io.ktor.routing.get
-import io.ktor.routing.post
-import io.ktor.routing.routing
+import io.ktor.routing.*
 import io.magnaura.protocol.Command
-import io.magnaura.protocol.CompiledClass
-import io.magnaura.protocol.Project
 import io.magnaura.server.handles.compileCommand
 import io.magnaura.server.storage.Storage
-import org.slf4j.event.Level
 
-@Suppress("unused") // Referenced in application.conf
-@kotlin.jvm.JvmOverloads
-fun Application.module(testing: Boolean = false) {
-    install(Locations) {
-    }
 
-    install(ContentNegotiation) {
-        jackson {
-            // Configure Jackson's ObjectMapper here
-        }
-    }
-
-    install(CallLogging) {
-        level = Level.INFO
-        filter { call -> call.request.path().startsWith("/compiler") }
-    }
-
-    val client = HttpClient() {
-    }
+fun Application.v1() {
 
     routing {
         get("/") {
@@ -79,6 +52,7 @@ fun Application.module(testing: Boolean = false) {
         post(Command.SUBDOMAIN) {
             val (hash, context, command) = call.receive<Command.Request>()
             val result = compileCommand(hash, context, command).toProtocolResponse()
+            call.response.status(HttpStatusCode.Accepted)
             call.respond(result)
         }
 

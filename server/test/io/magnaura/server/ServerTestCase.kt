@@ -28,7 +28,8 @@ abstract class ServerTestCase: TestCase() {
             config.put(key, value)
         }
 
-        module(testing = true)
+        init()
+        v1()
     }
 
 //    fun <R> withMagnauraServer(test: TestApplicationEngine.() -> R): R {

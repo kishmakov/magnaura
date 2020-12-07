@@ -4,7 +4,6 @@ import io.ktor.config.MapApplicationConfig
 import io.ktor.http.*
 import kotlin.test.*
 import io.ktor.server.testing.*
-import io.magnaura.server.module
 
 class ApplicationTest {
     private val applicationProperties: Map<String, String> by lazy {
@@ -26,7 +25,8 @@ class ApplicationTest {
                     put(key, value)
                 }
             }
-            module(testing = true)
+            init()
+            v1()
         }) {
 
             handleRequest(HttpMethod.Get, "/").apply {
