@@ -4,9 +4,9 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.magnaura.server.ServerTestCase
 
-class SumTest : ServerTestCase() {
+class ApplicationTest : ServerTestCase() {
     fun testRoot() {
-        withMagnauraServer {
+        withV1Server {
             handleRequest(HttpMethod.Get, "/").apply {
                 assertEquals(HttpStatusCode.OK, response.status())
                 assertEquals("Label text", response.content)
