@@ -10,6 +10,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.magnaura.platform.ByteArrayClassLoader
 import io.magnaura.protocol.*
+import io.magnaura.protocol.v1.Command
+import io.magnaura.protocol.v1.Constants
 import kotlinx.coroutines.runBlocking
 
 typealias SquareFunction = (Int) -> Int
@@ -88,7 +90,7 @@ object CompilerClient {
 
         return runBlocking {
             val analysisResult: Command.Response = client.post {
-                url("http://0.0.0.0:8080/" + Command.SUBDOMAIN)
+                url("http://0.0.0.0:8080" + Command.handlePath)
                 contentType(ContentType.Application.Json)
                 body = Command.Request(context.md5(), context, command)
             }

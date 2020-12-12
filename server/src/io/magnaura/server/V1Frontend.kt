@@ -7,14 +7,12 @@ import io.ktor.locations.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.magnaura.protocol.Command
+import io.magnaura.protocol.v1.Command
 import io.magnaura.server.handles.compileCommand
 import io.magnaura.server.storage.Storage
 
-
-fun Application.v1() {
-
-    routing {
+object V1Frontend : Frontend() {
+    override fun Route.setupRoutes() {
         get("/") {
             call.respondText(text(), contentType = ContentType.Text.Plain)
         }
@@ -49,7 +47,7 @@ fun Application.v1() {
 //                warnings = analyser.messageCollector.warnings()))
 //        }
 
-        post(Command.SUBDOMAIN) {
+        post(Command.handlePath) {
             val (hash, context, command) = call.receive<Command.Request>()
             val result = compileCommand(hash, context, command).toProtocolResponse()
             call.response.status(HttpStatusCode.Accepted)
@@ -74,6 +72,7 @@ fun Application.v1() {
         }
     }
 }
+
 
 @Location("/file/{index}")
 data class ClassRequest(val index: Int)

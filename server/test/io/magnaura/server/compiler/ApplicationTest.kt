@@ -7,7 +7,7 @@ import io.magnaura.server.ServerTestCase
 class ApplicationTest : ServerTestCase() {
     fun testRoot() {
         withV1Server {
-            handleRequest(HttpMethod.Get, "/").apply {
+            handleRequest(HttpMethod.Get, "/v1").apply {
                 assertEquals(HttpStatusCode.OK, response.status())
                 assertEquals("Label text", response.content)
             }

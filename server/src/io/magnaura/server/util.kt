@@ -13,6 +13,12 @@ import java.nio.file.Paths
 import java.util.stream.Stream
 import kotlin.streams.toList
 
+
+object Properties {
+    const val COMPILER_JARS = "magnaura.jvm.kotlinCompilerJars"
+    const val LIBRARIES_JARS = "magnaura.jvm.librariesJars"
+}
+
 fun text(): String {
     return "Label text"
 }

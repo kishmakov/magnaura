@@ -7,7 +7,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.stubs.IStubElementType
 import io.magnaura.platform.SupportedType
-import io.magnaura.protocol.Constants
+import io.magnaura.protocol.v1.Constants
 import io.magnaura.server.kotlinFile
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.cli.jvm.compiler.TopDownAnalyzerFacadeForJVM

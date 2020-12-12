@@ -19,7 +19,10 @@ abstract class ServerTestCase: TestCase() {
         }
 
         init()
-        v1()
+
+        with (V1Frontend) {
+            init()
+        }
     }
 
     fun <R> withV1Server(test: TestApplicationEngine.() -> R): R = withTestApplication(v1Config, test)

@@ -1,7 +1,7 @@
 package io.magnaura.server.handles
 
 import io.magnaura.platform.SupportedType
-import io.magnaura.protocol.Command
+import io.magnaura.protocol.v1.Command
 import io.magnaura.protocol.CompiledClass
 import io.magnaura.server.compiler.CommandProcessor
 import io.magnaura.server.compiler.ErrorAnalyzer

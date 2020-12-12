@@ -1,11 +1,12 @@
-package io.magnaura.protocol
+package io.magnaura.protocol.v1
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import io.magnaura.protocol.Handle
+import io.magnaura.protocol.Path
 
-private const val DOMAIN = "compile"
+private val CompileSubpath = Path.Subpath(V1RootPath, "compile")
 
-object Command {
-    const val SUBDOMAIN = "$DOMAIN/command"
+object Command : Handle(Path.Subpath(CompileSubpath, "command")) {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Request(
