@@ -6,7 +6,7 @@ import io.magnaura.protocol.Path
 
 private val CompileSubpath = Path.Subpath(V1RootPath, "compile")
 
-object Command : Handle(Path.Subpath(CompileSubpath, "command")) {
+object CompileCommandHandle : Handle(Path.Subpath(CompileSubpath, "command")) {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Request(

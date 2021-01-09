@@ -1,4 +1,4 @@
-package io.magnaura.server
+package io.magnaura.server.v1
 
 import io.ktor.application.*
 import io.ktor.http.*
@@ -7,15 +7,19 @@ import io.ktor.locations.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.magnaura.protocol.v1.Command
-import io.magnaura.server.handles.compileCommand
+import io.magnaura.protocol.v1.CompileCommandHandle
+import io.magnaura.server.Frontend
+//import io.magnaura.server.handles.compileCommand
+import io.magnaura.server.v1.handles.CompileCommandHandler
 import io.magnaura.server.storage.Storage
 
-object V1Frontend : Frontend() {
-    override fun Route.setupRoutes() {
-        get("/") {
-            call.respondText(text(), contentType = ContentType.Text.Plain)
-        }
+object V1Frontend : Frontend(listOf(CompileCommandHandler))
+
+//{
+//    override fun Route.setupRoutes() {
+//        get("/") {
+//            call.respondText(text(), contentType = ContentType.Text.Plain)
+//        }
 
 //        post("/compiler") {
 //            val project = call.receive<Project>()
@@ -47,31 +51,31 @@ object V1Frontend : Frontend() {
 //                warnings = analyser.messageCollector.warnings()))
 //        }
 
-        post(Command.handlePath) {
-            val (hash, context, command) = call.receive<Command.Request>()
-            val result = compileCommand(hash, context, command).toProtocolResponse()
-            call.response.status(HttpStatusCode.Accepted)
-            call.respond(result)
-        }
-
-        // Static feature. Try to access `/static/ktor_logo.svg`
-        static("/static") {
-            resources("static")
-        }
-
-        get<ClassRequest> {
-            val message = ByteArrayContent(Storage.getClassBytes(it.index), ContentType.Application.OctetStream)
-            call.respond(message)
-        }
-        // Register nested routes
-        get<Type.Edit> {
-            call.respondText("Inside $it")
-        }
-        get<Type.List> {
-            call.respondText("Inside $it")
-        }
-    }
-}
+//        post(CompileCommandHandle.handlePath) {
+//            val (hash, context, command) = call.receive<CompileCommandHandle.Request>()
+//            val result = compileCommand(hash, context, command).toProtocolResponse()
+//            call.response.status(HttpStatusCode.Accepted)
+//            call.respond(result)
+//        }
+//
+//        // Static feature. Try to access `/static/ktor_logo.svg`
+//        static("/static") {
+//            resources("static")
+//        }
+//
+//        get<ClassRequest> {
+//            val message = ByteArrayContent(Storage.getClassBytes(it.index), ContentType.Application.OctetStream)
+//            call.respond(message)
+//        }
+//        // Register nested routes
+//        get<Type.Edit> {
+//            call.respondText("Inside $it")
+//        }
+//        get<Type.List> {
+//            call.respondText("Inside $it")
+//        }
+//    }
+//}
 
 
 @Location("/file/{index}")

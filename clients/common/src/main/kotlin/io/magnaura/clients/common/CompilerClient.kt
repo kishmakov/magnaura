@@ -10,7 +10,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.magnaura.platform.ByteArrayClassLoader
 import io.magnaura.protocol.*
-import io.magnaura.protocol.v1.Command
+import io.magnaura.protocol.v1.CompileCommandHandle
 import io.magnaura.protocol.v1.Constants
 import kotlinx.coroutines.runBlocking
 
@@ -89,10 +89,10 @@ object CompilerClient {
         }
 
         return runBlocking {
-            val analysisResult: Command.Response = client.post {
-                url("http://0.0.0.0:8080" + Command.handlePath)
+            val analysisResult: CompileCommandHandle.Response = client.post {
+                url("http://0.0.0.0:8080" + CompileCommandHandle.handlePath)
                 contentType(ContentType.Application.Json)
-                body = Command.Request(context.md5(), context, command)
+                body = CompileCommandHandle.Request(context.md5(), context, command)
             }
 
             when {
