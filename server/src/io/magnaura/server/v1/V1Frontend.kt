@@ -8,12 +8,15 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.magnaura.protocol.v1.CompileCommandHandle
+import io.magnaura.protocol.v1.V1RootPath
 import io.magnaura.server.Frontend
-//import io.magnaura.server.handles.compileCommand
 import io.magnaura.server.v1.handles.CompileCommandHandler
 import io.magnaura.server.storage.Storage
 
-object V1Frontend : Frontend(listOf(CompileCommandHandler))
+object V1Frontend : Frontend(
+    V1RootPath,
+    listOf(CompileCommandHandler)
+)
 
 //{
 //    override fun Route.setupRoutes() {

@@ -13,18 +13,18 @@ class Handler(
 ) {
     fun addHandlingFunction(route: Route) {
         getProcessor?.let {
-            route.get(handle.handlePath) { it(call) }
+            route.get(handle.path.toString()) { it(call) }
         }
 
         postProcessor?.let {
-            route.post(handle.handlePath) { it(call) }
+            route.post(handle.path.toString()) { it(call) }
         }
     }
 
     fun description(): List<String> {
         return listOfNotNull(
-            "GET   ${handle.handlePath}".takeIf { getProcessor != null },
-            "POST  ${handle.handlePath}".takeIf { postProcessor != null }
+            "GET   ${handle.path}".takeIf { getProcessor != null },
+            "POST  ${handle.path}".takeIf { postProcessor != null }
         )
     }
 }

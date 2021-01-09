@@ -4,8 +4,9 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.magnaura.protocol.Path
 
-open class Frontend(val handlers: List<Handler>) {
+open class Frontend(private val rootPath: Path, private val handlers: List<Handler>) {
     private val allHandles = handlers
         .flatMap { it.description() }
         .sorted()
@@ -17,7 +18,7 @@ open class Frontend(val handlers: List<Handler>) {
                 handler.addHandlingFunction(this)
             }
 
-            get("/") {
+            get("/$rootPath") {
                 call.respondText(allHandles, contentType = ContentType.Text.Plain)
             }
         }
