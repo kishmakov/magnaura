@@ -1,21 +1,17 @@
 package io.magnaura.server.v1
 
-import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.http.content.*
 import io.ktor.locations.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.magnaura.protocol.v1.CompileCommandHandle
 import io.magnaura.protocol.v1.V1RootPath
 import io.magnaura.server.Frontend
-import io.magnaura.server.v1.handles.CompileCommandHandler
-import io.magnaura.server.storage.Storage
+import io.magnaura.server.v1.handles.CompilationHandler
+import io.magnaura.server.v1.handles.CompileHandler
 
 object V1Frontend : Frontend(
     V1RootPath,
-    listOf(CompileCommandHandler)
+    listOf(
+        CompilationHandler,
+        CompileHandler
+    )
 )
 
 //{

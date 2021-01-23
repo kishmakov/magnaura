@@ -5,26 +5,29 @@ import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.magnaura.platform.SupportedType
-import io.magnaura.protocol.v1.CompileCommandHandle
+import io.magnaura.protocol.v1.CompileHandle
 import io.magnaura.protocol.CompiledClass
 import io.magnaura.server.compiler.CommandProcessor
 import io.magnaura.server.compiler.ErrorAnalyzer
 import io.magnaura.server.compiler.KotlinCompiler
 import io.magnaura.server.Handler
+import io.magnaura.server.compiler.CompilerDispatcher
+import io.magnaura.server.storage.COMPILATIONS
+import kotlinx.coroutines.*
 
 sealed class CompilationResult {
     data class Failure(val errors: List<String>) : CompilationResult()
     data class Success(val commandType: SupportedType) : CompilationResult()
 
-    fun toProtocolResponse(): CompileCommandHandle.Response = when (this) {
-        is Failure -> {
-            CompileCommandHandle.Response(failure = CompileCommandHandle.Failure(errors))
-        }
-        is Success -> {
-            val commandType = commandType.id
-            CompileCommandHandle.Response(success = CompileCommandHandle.Success(commandType))
-        }
-    }
+//    fun toProtocolResponse(): CompileHandle.Response = when (this) {
+//        is Failure -> {
+//            CompileHandle.Response(failure = CompileHandle.Failure(errors))
+//        }
+//        is Success -> {
+//            val commandType = commandType.id
+//            CompileHandle.Response(success = CompileHandle.Success(commandType))
+//        }
+//    }
 }
 
 fun compileCommand(hash: String, context: String, command: String): CompilationResult {
@@ -50,14 +53,23 @@ fun compileCommand(hash: String, context: String, command: String): CompilationR
 //            compilation.files.map { "${it.key} -> ${it.value.size}" }
 }
 
-suspend fun compileCommandProcessor(call: ApplicationCall) {
-    val (hash, context, command) = call.receive<CompileCommandHandle.Request>()
-    val result = compileCommand(hash, context, command).toProtocolResponse()
-    call.response.status(HttpStatusCode.Accepted)
-    call.respond(result)
+//suspend fun compile2(hash: String, context: String, command: String) = withContext(CompilerDispatcher) {
+fun compile2(hash: String, context: String, command: String) {
+    GlobalScope.launch(CompilerDispatcher) {
+        COMPILATIONS.put(hash, "$context -- $command")
+    }
 }
 
-val CompileCommandHandler = Handler(
-    CompileCommandHandle,
-    postProcessor = ::compileCommandProcessor
+suspend fun compileProcessor(call: ApplicationCall) {
+    val (context, command) = call.receive<CompileHandle.Request>()
+    val hash = "abacaba"
+//    val result = compileCommand(hash, context, command).toProtocolResponse()
+    compile2(hash, context, command)
+    call.response.status(HttpStatusCode.Accepted)
+    call.respond(CompileHandle.Response(hash))
+}
+
+val CompileHandler = Handler(
+    CompileHandle,
+    postProcessor = ::compileProcessor
 )

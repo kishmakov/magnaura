@@ -10,7 +10,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.magnaura.platform.ByteArrayClassLoader
 import io.magnaura.protocol.*
-import io.magnaura.protocol.v1.CompileCommandHandle
+import io.magnaura.protocol.v1.CompileHandle
 import io.magnaura.protocol.v1.Constants
 import kotlinx.coroutines.runBlocking
 
@@ -89,17 +89,19 @@ object CompilerClient {
         }
 
         return runBlocking {
-            val analysisResult: CompileCommandHandle.Response = client.post {
-                url("http://0.0.0.0:8080" + CompileCommandHandle.handlePath)
+            val analysisResult: CompileHandle.Response = client.post {
+                url("http://0.0.0.0:8080" + CompileHandle.path)
                 contentType(ContentType.Application.Json)
-                body = CompileCommandHandle.Request(context.md5(), context, command)
+                body = CompileHandle.Request(/*context.md5(),*/ context, command)
             }
 
-            when {
-                analysisResult.failure != null -> analysisResult.failure!!.errors
-                analysisResult.success != null -> listOf(analysisResult.success!!.commandType) + analysisResult.success!!.declarations
-                else -> listOf("Unknown response")
-            }
+            listOf(analysisResult.compilationId)
+
+//            when {
+//                analysisResult.failure != null -> analysisResult.failure!!.errors
+//                analysisResult.success != null -> listOf(analysisResult.success!!.commandType) + analysisResult.success!!.declarations
+//                else -> listOf("Unknown response")
+//            }
         }
     }
 }
