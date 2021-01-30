@@ -1,0 +1,4 @@
+GET http://127.0.0.1:8080/v1/context?contextId=74d181ce69fa53e60fb588719cc404e1
+Accept: application/json
+
+###

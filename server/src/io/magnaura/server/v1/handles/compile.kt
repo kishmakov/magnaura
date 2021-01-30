@@ -7,12 +7,12 @@ import io.ktor.response.*
 import io.magnaura.platform.SupportedType
 import io.magnaura.protocol.v1.CompileHandle
 import io.magnaura.protocol.CompiledClass
-import io.magnaura.server.compiler.CommandProcessor
-import io.magnaura.server.compiler.ErrorAnalyzer
-import io.magnaura.server.compiler.KotlinCompiler
 import io.magnaura.server.Handler
-import io.magnaura.server.compiler.CompilerDispatcher
-import io.magnaura.server.storage.COMPILATIONS
+import io.magnaura.server.compiler.*
+import io.magnaura.server.md5
+import io.magnaura.server.storage.COMMAND_STORAGE
+import io.magnaura.server.storage.CONTEXT_STORAGE
+import io.magnaura.server.v1.V1Frontend
 import kotlinx.coroutines.*
 
 sealed class CompilationResult {
@@ -53,20 +53,28 @@ fun compileCommand(hash: String, context: String, command: String): CompilationR
 //            compilation.files.map { "${it.key} -> ${it.value.size}" }
 }
 
-//suspend fun compile2(hash: String, context: String, command: String) = withContext(CompilerDispatcher) {
-fun compile2(hash: String, context: String, command: String) {
-    GlobalScope.launch(CompilerDispatcher) {
-        COMPILATIONS.put(hash, "$context -- $command")
-    }
-}
+//    val result = compileCommand(hash, context, command).toProtocolResponse()
 
 suspend fun compileProcessor(call: ApplicationCall) {
     val (context, command) = call.receive<CompileHandle.Request>()
-    val hash = "abacaba"
-//    val result = compileCommand(hash, context, command).toProtocolResponse()
-    compile2(hash, context, command)
+
+    val contextId = context.md5()
+    val commandId = (contextId + command).md5()
+
+    GlobalScope.launch(V1Frontend.dispatcher) {
+        val view = CompilationView(contextId, commandId, context, command)
+
+        if (!CONTEXT_STORAGE.contains(contextId)) {
+            CONTEXT_STORAGE.put(contextId, view.compileContext())
+        }
+
+        if (!COMMAND_STORAGE.contains(commandId)) {
+            COMMAND_STORAGE.put(commandId, view.compileCommand())
+        }
+    }
+
     call.response.status(HttpStatusCode.Accepted)
-    call.respond(CompileHandle.Response(hash))
+    call.respond(CompileHandle.Response(contextId, commandId))
 }
 
 val CompileHandler = Handler(

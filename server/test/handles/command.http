@@ -1,0 +1,4 @@
+GET http://127.0.0.1:8080/v1/command?commandId=1c360e4e3a7780ca00af33d995e3d289
+Accept: application/json
+
+###

@@ -3,13 +3,15 @@ package io.magnaura.server.v1
 import io.ktor.locations.*
 import io.magnaura.protocol.v1.V1RootPath
 import io.magnaura.server.Frontend
-import io.magnaura.server.v1.handles.CompilationHandler
+import io.magnaura.server.v1.handles.CommandHandler
+import io.magnaura.server.v1.handles.ContextHandler
 import io.magnaura.server.v1.handles.CompileHandler
 
 object V1Frontend : Frontend(
     V1RootPath,
     listOf(
-        CompilationHandler,
+        ContextHandler,
+        CommandHandler,
         CompileHandler
     )
 )

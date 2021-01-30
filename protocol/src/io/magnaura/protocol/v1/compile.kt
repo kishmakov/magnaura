@@ -9,5 +9,5 @@ object CompileHandle : Handle(Path.Subpath(V1RootPath, "compile")) {
     data class Request(val context: String, val command: String)
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    data class Response(val compilationId: String)
+    data class Response(val contextId: String, val commandId: String)
 }

@@ -4,14 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.magnaura.protocol.Handle
 import io.magnaura.protocol.Path
 
-object CompilationHandle : Handle(Path.Subpath(V1RootPath, "compilation")) {
+object CommandHandle : Handle(Path.Subpath(V1RootPath, "command")) {
     @JsonIgnoreProperties(ignoreUnknown = true)
-    data class Request(val compilationId: String)
+    data class Request(val commandId: String)
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Success(
-        val commandType: String,
-        val declarations: List<String> = emptyList()
+        val info: String
+//        val commandType: String,
+//        val declarations: List<String> = emptyList()
     )
 
     @JsonIgnoreProperties(ignoreUnknown = true)

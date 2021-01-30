@@ -95,7 +95,7 @@ object CompilerClient {
                 body = CompileHandle.Request(/*context.md5(),*/ context, command)
             }
 
-            listOf(analysisResult.compilationId)
+            listOf(analysisResult.commandId)
 
 //            when {
 //                analysisResult.failure != null -> analysisResult.failure!!.errors
