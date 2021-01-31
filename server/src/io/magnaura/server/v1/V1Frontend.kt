@@ -10,9 +10,9 @@ import io.magnaura.server.v1.handles.CompileHandler
 object V1Frontend : Frontend(
     V1RootPath,
     listOf(
-        ContextHandler,
         CommandHandler,
-        CompileHandler
+        CompileHandler,
+        ContextHandler
     )
 )
 

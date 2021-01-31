@@ -3,8 +3,8 @@ Content-Type: application/json
 Connection: close
 
 {
-  "context": "hoho",
-  "command": "239"
+  "context": "fun squareDiff(a: Int, b: Int): Int {\n  return a * a - b * b\n}",
+  "command": "94.5 - squareDiff(9, 7)"
 }
 
 ###
