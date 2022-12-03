@@ -16,7 +16,7 @@ dependencies {
     implementation(compose.foundation)
     implementation(compose.material)
 
-    implementation(compose.desktop.all)
+//    implementation(compose.desktop.all)
 
     implementation(project(":clients:common"))
 }

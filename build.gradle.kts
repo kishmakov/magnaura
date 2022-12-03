@@ -4,11 +4,14 @@ allprojects {
 
     repositories {
         gradlePluginPortal()
-        jcenter()
+        google()
 
-        maven("https://dl.bintray.com/kotlin/kotlin-eap")
-        maven("https://kotlin.bintray.com/ktor")
+        mavenCentral()
+        mavenLocal()
+
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+        maven("https://kotlin.bintray.com/ktor")
         maven("https://packages.jetbrains.team/maven/p/ui/dev")
     }
 }
